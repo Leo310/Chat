@@ -3,14 +3,19 @@
 
 int main()
 {
-	Server srv("192.168.1.7", 54010);
+	Server srv("127.0.0.1", 54000);
 
 	if (!srv.init())	
 		std::cout << "Couldnt Init Winsock" << std::endl;
 
 	srv.run();
 
-	std::cin.get();
+	while (srv.recieve())
+	{
+		std::cout << srv.getMessage() << std::endl;
+		srv.sendMsg(srv.getMessage());
+	}
 
+	std::cin.get();
 	return 0;
 }

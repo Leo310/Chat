@@ -15,6 +15,12 @@ public:
 
 	bool init();
 	void run();
+
+	bool recieve();
+	bool sendMsg(const std::string& msg);
+
+	std::string getMessage();
+
 	void cleanUp();
 
 private:
@@ -29,4 +35,6 @@ private:
 
 	std::string m_IpAddress;
 	int m_Port;
+
+	char m_RcvMsg[4096];
 };

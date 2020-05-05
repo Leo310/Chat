@@ -22,11 +22,39 @@ void Server::run()
 	waitForConnection();
 }
 
+bool Server::recieve()
+{
+	int received = recv(m_Clients, m_RcvMsg, 4096, 0);
+	if (received == SOCKET_ERROR)
+		std::cout << "Couldnt receive msg	Error code: " << WSAGetLastError << std::endl;
+	else if (received == 0)
+		std::cout << "Client diconnected" << std::endl;
+	else
+		return true;
+	return false;
+}
+
+bool Server::sendMsg(const std::string& msg)
+{
+	int sended = send(m_Clients, msg.c_str(), msg.size() + 1, 0);
+	if (sended == SOCKET_ERROR)
+	{
+		std::cout << "Couldnt send msg	Error code: " << WSAGetLastError << std::endl;
+		return false;
+	}
+	return true;
+}
+
 void Server::cleanUp()
 {
 	closesocket(m_Listening);
 	closesocket(m_Clients);
 	WSACleanup();
+}
+
+std::string Server::getMessage()
+{
+	return m_RcvMsg;
 }
 
 void Server::createSocket()

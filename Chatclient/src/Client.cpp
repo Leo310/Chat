@@ -23,6 +23,7 @@ void Client::connectToSrv(const std::string& srvIp, int srvPort)
 	serverAddr.sin_port = htons(srvPort);
 	inet_pton(AF_INET, srvIp.c_str(), &serverAddr.sin_addr);
 
+	std::cout << "Connecting to srv..." << std::endl;
 	int connectSrv = connect(m_Client, (sockaddr*)&serverAddr, sizeof(serverAddr));
 	if (connectSrv == SOCKET_ERROR)
 	{
@@ -32,6 +33,34 @@ void Client::connectToSrv(const std::string& srvIp, int srvPort)
 	{
 		std::cout << "Connected successfully to Server " << srvIp << ":" << srvPort << std::endl;
 	}
+}
+
+bool Client::sendMsg(const std::string& msg)
+{
+	int sended = send(m_Client, msg.c_str(), msg.size() + 1, 0);
+	if (sended == SOCKET_ERROR)
+	{
+		std::cout << "Couldnt send msg	Error code: " << WSAGetLastError << std::endl;
+		return false;
+	}
+	return true;
+}
+
+bool Client::recieve()
+{
+	int received = recv(m_Client, m_RcvMsg, 4096, 0);
+	if (received == SOCKET_ERROR)
+		std::cout << "Couldnt receive msg	Error code: " << WSAGetLastError << std::endl;
+	else if (received == 0)
+		std::cout << "Server diconnected" << std::endl;
+	else
+		return true;
+	return false;
+}
+
+std::string Client::getMessage()
+{
+	return m_RcvMsg;
 }
 
 void Client::cleanup()
