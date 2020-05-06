@@ -6,7 +6,6 @@
 #include <vector>
 #include <iostream>
 
-
 class Server
 {
 public:
@@ -14,7 +13,9 @@ public:
 	~Server();
 
 	bool init();
-	void run();
+
+	bool createListeningSocket();
+	void waitForConnection();
 
 	bool recieve();
 	bool sendMsg(const std::string& msg);
@@ -24,17 +25,21 @@ public:
 	void cleanUp();
 
 private:
-	void createSocket();
-	void waitForConnection();
-
 	SOCKET m_Listening;
-
-	SOCKET m_Clients;
-	sockaddr_in m_AddrOfClients;
+	
+	std::vector<SOCKET> m_Clients;
+	SOCKET m_Client;
+	SOCKADDR_IN m_AddrOfClient;
 	int m_ClientSize;
 
 	std::string m_IpAddress;
 	int m_Port;
 
 	char m_RcvMsg[4096];
+
+	//set of socket descriptors  
+	fd_set m_Readfds;
+	int m_Maxsd;
+	int m_Sd;
+	int m_Rdy;
 };

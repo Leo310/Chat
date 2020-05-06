@@ -25,6 +25,7 @@ void Client::connectToSrv(const std::string& srvIp, int srvPort)
 
 	std::cout << "Connecting to srv..." << std::endl;
 	int connectSrv = connect(m_Client, (sockaddr*)&serverAddr, sizeof(serverAddr));
+
 	if (connectSrv == SOCKET_ERROR)
 	{
 		std::cout << "Cant connect to Srv	Error code: " << WSAGetLastError() << std::endl;

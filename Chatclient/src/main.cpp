@@ -8,7 +8,7 @@ int main()
 		std::cout << "Couldnt init" << std::endl;
 
 	client.createSocket();
-	client.connectToSrv("127.0.0.1", 54000);
+	client.connectToSrv("192.168.1.4", 54000);
 
 	std::string userInput;
 
@@ -17,14 +17,15 @@ int main()
 		//Prompt the user for some text
 		std::cout << "> ";
 		std::getline(std::cin, userInput);
-
+		if (userInput == "exit")
+		{
+			break;
+		}
 		if (client.sendMsg(userInput))
 		{
 			if (client.recieve())
 				std::cout << client.getMessage() << std::endl;
 		}
 	}
-
-	std::cin.get();
 	return 0;
 }
