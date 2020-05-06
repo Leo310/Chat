@@ -1,8 +1,0 @@
-﻿  main.cpp
-  Server.cpp
-C:\Users\Leonard\Desktop\Projekte\Chat\Chatserver\src\Server.cpp(22,20): warning C4018: "<": Konflikt zwischen "signed" und "unsigned"
-C:\Users\Leonard\Desktop\Projekte\Chat\Chatserver\src\Server.cpp(55,20): warning C4018: "<": Konflikt zwischen "signed" und "unsigned"
-C:\Users\Leonard\Desktop\Projekte\Chat\Chatserver\src\Server.cpp(71,20): warning C4018: "<": Konflikt zwischen "signed" und "unsigned"
-C:\Users\Leonard\Desktop\Projekte\Chat\Chatserver\src\Server.cpp(129,20): warning C4018: "<": Konflikt zwischen "signed" und "unsigned"
-  Code wird generiert...
-  Chatserver.vcxproj -> C:\Users\Leonard\Desktop\Projekte\Chat\bin\Win32\Debug\Chatserver.exe
