@@ -1,5 +1,18 @@
 #include "Client.h"
 
+#include <thread>
+
+
+void waitingForMsg(Client client)
+{
+	while (true)
+	{
+		client.recieve();
+		std::cout << client.getMessage() << std::endl;
+	}
+
+}
+
 int main()
 {
 	Client client;
@@ -8,24 +21,20 @@ int main()
 		std::cout << "Couldnt init" << std::endl;
 
 	client.createSocket();
-	client.connectToSrv("192.168.1.4", 54000);
+	client.connectToSrv("127.0.0.1", 54000);
+
+	std::thread worker(waitingForMsg, std::ref(client));
 
 	std::string userInput;
 
 	while (true)
 	{
-		//Prompt the user for some text
-		std::cout << "> ";
+		//std::cout << "> ";
 		std::getline(std::cin, userInput);
 		if (userInput == "exit")
-		{
 			break;
-		}
-		if (client.sendMsg(userInput))
-		{
-			if (client.recieve())
-				std::cout << client.getMessage() << std::endl;
-		}
+		client.sendMsg(userInput);
 	}
+	worker.detach();	//need to "destroy" explicitly
 	return 0;
 }
