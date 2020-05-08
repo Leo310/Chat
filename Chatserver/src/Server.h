@@ -5,6 +5,8 @@
 
 #include <vector>
 #include <iostream>
+#include <tuple>
+#include "Chatroom.h"
 
 class Server
 {
@@ -18,13 +20,16 @@ public:
 	void waitForConnection();
 
 	bool recieve();
-	bool sendMsg(const std::string& msg);
+	bool sendMsg();
 
 	std::string getMessage();
 
 	void cleanUp();
 
 private:
+	//std::vector<Chatroom> m_Chatrooms;
+	Chatroom cr = Chatroom(1);
+
 	SOCKET m_Listening;
 	
 	std::vector<SOCKET> m_Clients;
@@ -35,11 +40,11 @@ private:
 	std::string m_IpAddress;
 	int m_Port;
 
-	char m_RcvMsg[4096];
+	std::tuple<std::string, SOCKET> m_RcvMsg;
 
 	//set of socket descriptors  
 	fd_set m_Readfds;
 	int m_Maxsd;
-	int m_Sd;
+	SOCKET m_Sd;
 	int m_Rdy;
 };

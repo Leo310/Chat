@@ -24,7 +24,9 @@ bool Server::recieve()
 		m_Sd = m_Clients[i];
 		if (FD_ISSET(m_Sd, &m_Readfds))
 		{
-			int received = recv(m_Clients[i], m_RcvMsg, 4096, 0);
+			char buf[4096];
+			int received = recv(m_Clients[i], buf, 4096, 0);
+			m_RcvMsg = std::make_tuple(buf, m_Clients[i]);
 			getpeername(m_Sd, (sockaddr*)&m_AddrOfClient, &m_ClientSize);	//TODO check return value
 
 			char hostName[NI_MAXHOST];
@@ -49,12 +51,13 @@ bool Server::recieve()
 	return rcv;
 }
 
-bool Server::sendMsg(const std::string& msg)
+bool Server::sendMsg()
 {
 	bool sended = false;
-	for (int i = 0; i < m_Clients.size(); i++)
+	std::vector<SOCKET> sendTo = cr.sendMsg(std::get<1>(m_RcvMsg));
+	for (int i = 0; i < sendTo.size(); i++)
 	{
-		int sended = send(m_Clients[i], msg.c_str(), msg.size() + 1, 0);
+		int sended = send(sendTo[i], std::get<0>(m_RcvMsg).c_str(), std::get<0>(m_RcvMsg).size() + 1, 0);
 		if (sended == SOCKET_ERROR)
 		{
 			std::cout << "Couldnt send msg	Error code: " << WSAGetLastError() << std::endl;
@@ -77,7 +80,7 @@ void Server::cleanUp()
 
 std::string Server::getMessage()
 {
-	return m_RcvMsg;
+	return std::get<0>(m_RcvMsg);
 }
 
 bool Server::createListeningSocket()
@@ -169,6 +172,7 @@ void Server::waitForConnection()
 			std::cout << hostName << " connected on port " << ntohs(m_AddrOfClient.sin_port) << std::endl;
 		}
 		m_Clients.push_back(m_Client);
+		cr.add(m_Client);
 	}
 
 }

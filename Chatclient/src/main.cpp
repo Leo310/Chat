@@ -21,7 +21,7 @@ int main()
 		std::cout << "Couldnt init" << std::endl;
 
 	client.createSocket();
-	client.connectToSrv("127.0.0.1", 54000);
+	client.connectToSrv("78.55.167.172", 54000);
 
 	std::thread worker(waitingForMsg, std::ref(client));
 
