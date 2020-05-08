@@ -2,13 +2,17 @@
 
 #include <thread>
 
+static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);	//change color of console
 
 void waitingForMsg(Client client)
 {
+
 	while (true)
 	{
 		client.recieve();
-		std::cout << client.getMessage() << std::endl;
+		SetConsoleTextAttribute(hConsole, 10);		//change color of console
+		std::cout << "				" << client.getMessage() << std::endl;
+		SetConsoleTextAttribute(hConsole, 12);		//change color of console
 	}
 
 }
@@ -26,6 +30,8 @@ int main()
 	std::thread worker(waitingForMsg, std::ref(client));
 
 	std::string userInput;
+
+	SetConsoleTextAttribute(hConsole, 12);		//change color of console
 
 	while (true)
 	{
