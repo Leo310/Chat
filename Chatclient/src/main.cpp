@@ -4,40 +4,40 @@
 
 static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);	//change color of console
 static std::string userInput;
-static std::string serverChoice;
 
+
+//other Threads task
 void waitingForMsg(Client client)
 {
-
 	while (true)
 	{
 		client.recieve();
 		SetConsoleTextAttribute(hConsole, 10);		//change color of console
-		std::cout << "				" << client.getMessage() << std::endl;
+		std::cout << client.getMessage() << std::endl;
 		SetConsoleTextAttribute(hConsole, 12);		//change color of console
 	}
-
 }
 
-bool chooseChatroom(Client& client)
+std::string chooseChatroom()
 {
-	std::cout << "Du kannst auf die Chatraeume von 0-3 connected." << std::endl;
-	std::cout << "Tippe nun deine Wahl ein." << std::endl;
-	std::getline(std::cin, userInput);
-	if (userInput == "0")
-		serverChoice = "0";
-	else if (userInput == "1")
-		serverChoice = "1";
-	else if (userInput == "2")
-		serverChoice = "2";
-	else if (userInput == "3")
-		serverChoice = "3";
-	else
-	{
-		std::cout << "Dieser Chatraum existiert nicht." << std::endl;
-		return false;
+	while (true) {
+		std::cout << "Du kannst auf die Chatraeume von 0-3 connected." << std::endl;
+		std::cout << "Tippe nun deine Wahl ein." << std::endl;
+		std::getline(std::cin, userInput);
+
+		if (userInput == "0")
+			return "0";
+		else if (userInput == "1")
+			return "1";
+		else if (userInput == "2")
+			return "2";
+		else if (userInput == "3")
+			return "3";
+		else
+		{
+			std::cout << "Dieser Chatraum existiert nicht." << std::endl;
+		}
 	}
-	return true;
 }
 
 int main()
@@ -47,15 +47,15 @@ int main()
 	if (!client.init())
 		std::cout << "Couldnt init" << std::endl;
 
-	while (!chooseChatroom(client));
-
+	std::string choice = chooseChatroom();
 	client.createSocket();
-	client.connectToSrv("78.55.167.172", 54000);
-	client.sendMsg(serverChoice);
-	client.recieve();
-	std::cout << client.getMessage() << "!" << std::endl;
+	client.connectToSrv("89.14.163.155", 54000);
 
-	std::thread worker(waitingForMsg, std::ref(client));
+	client.sendMsg(choice);
+	client.recieve();		//wartet auf antwort des srv ob das joinen auf den chatroom geklappt hat
+	std::cout << client.getMessage() << "!" << std::endl;
+		
+	std::thread worker(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann
 
 	SetConsoleTextAttribute(hConsole, 12);		//change color of console
 
