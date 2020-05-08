@@ -16,7 +16,7 @@ int main()
 			if (srv.recieve())
 			{
 				std::cout << srv.getMessage() << std::endl;
-				srv.sendMsg();
+				srv.sendMsgCr();
 			}
 		}
 	}

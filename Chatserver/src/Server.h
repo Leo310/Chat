@@ -20,7 +20,9 @@ public:
 	void waitForConnection();
 
 	bool recieve();
-	bool sendMsg();
+	bool sendMsgTo(SOCKET s, std::string msg);
+
+	bool sendMsgCr();
 
 	std::string getMessage();
 
@@ -28,7 +30,10 @@ public:
 
 private:
 	//std::vector<Chatroom> m_Chatrooms;
-	Chatroom cr = Chatroom(1);
+	Chatroom cr0 = Chatroom(0);
+	Chatroom cr1 = Chatroom(1);
+	Chatroom cr2 = Chatroom(2);
+	Chatroom cr3 = Chatroom(3);
 
 	SOCKET m_Listening;
 	

@@ -51,19 +51,35 @@ bool Server::recieve()
 	return rcv;
 }
 
-bool Server::sendMsg()
+bool Server::sendMsgTo(SOCKET s, std::string msg)
+{
+	int sended = send(s, msg.c_str(), msg.size() + 1, 0);
+	if (sended == SOCKET_ERROR)
+	{
+		std::cout << "Couldnt send msg	Error code: " << WSAGetLastError() << std::endl;
+		sended = false;
+	}
+	sended = true;
+	return sended;
+}
+
+bool Server::sendMsgCr()
 {
 	bool sended = false;
-	std::vector<SOCKET> sendTo = cr.sendMsg(std::get<1>(m_RcvMsg));
+	std::vector<SOCKET> sendTo;
+	//figuering out on which cr the client is
+	if(cr0.inChatroom(std::get<1>(m_RcvMsg)))
+		sendTo = cr0.sendMsg(std::get<1>(m_RcvMsg));
+	else if(cr1.inChatroom(std::get<1>(m_RcvMsg)))
+		sendTo = cr1.sendMsg(std::get<1>(m_RcvMsg));
+	else if (cr2.inChatroom(std::get<1>(m_RcvMsg)))
+		sendTo = cr2.sendMsg(std::get<1>(m_RcvMsg));
+	else if (cr3.inChatroom(std::get<1>(m_RcvMsg)))
+		sendTo = cr3.sendMsg(std::get<1>(m_RcvMsg));
+
 	for (int i = 0; i < sendTo.size(); i++)
 	{
-		int sended = send(sendTo[i], std::get<0>(m_RcvMsg).c_str(), std::get<0>(m_RcvMsg).size() + 1, 0);
-		if (sended == SOCKET_ERROR)
-		{
-			std::cout << "Couldnt send msg	Error code: " << WSAGetLastError() << std::endl;
-			sended = false;
-		}
-		sended = true;
+		sendMsgTo(sendTo[i],std::get<0>(m_RcvMsg));
 	}
 	return sended;
 }
@@ -158,21 +174,39 @@ void Server::waitForConnection()
 			std::cout << "Couldnt accept clientSocket	Error code: " << WSAGetLastError() << std::endl;
 		}
 
-		char hostName[NI_MAXHOST];
-		char service[NI_MAXSERV];
-		
-		if (getnameinfo((sockaddr*)&m_Client, sizeof(m_Client), hostName, NI_MAXHOST, service, NI_MAXSERV, 0) == 0)
-		{
-			std::cout << hostName << " connected on port " << service << std::endl;
-		}
-		else
-		{
-			std::cout << "Couldn't getnameinfo	Warning code: " << WSAGetLastError() << std::endl;
-			inet_ntop(AF_INET, &m_AddrOfClient.sin_addr, hostName, NI_MAXHOST);
-			std::cout << hostName << " connected on port " << ntohs(m_AddrOfClient.sin_port) << std::endl;
-		}
 		m_Clients.push_back(m_Client);
-		cr.add(m_Client);
+
+
+		//Chatroom auswahl
+		char buf[2];
+		int received = recv(m_Client, buf, 2, 0);	//TODO ask if error
+		std::string welcomeText;
+		if (buf == (std::string)"0")
+		{
+			cr0.add(m_Client);
+			welcomeText = "Connected successfully on Chatroom 0";
+		}
+		else if (buf == (std::string)"1")
+		{
+			cr1.add(m_Client);
+			welcomeText = "Connected successfully on Chatroom 1";
+		}
+		else if (buf == (std::string)"2")
+		{
+			cr2.add(m_Client);
+			welcomeText = "Connected successfully on Chatroom 2";
+		}
+		else if (buf == (std::string)"3")
+		{
+			cr3.add(m_Client);
+			welcomeText = "Connected successfully on Chatroom 3";
+		}
+		sendMsgTo(m_Client, welcomeText);
+
+		char hostName[NI_MAXHOST];
+		inet_ntop(AF_INET, &m_AddrOfClient.sin_addr, hostName, NI_MAXHOST);
+		std::cout << hostName << " connected on port " << ntohs(m_AddrOfClient.sin_port)<< " and on Chatroom " << buf << std::endl;
+
 	}
 
 }
