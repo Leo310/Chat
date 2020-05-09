@@ -22,7 +22,7 @@ std::string chooseChatroom()
 {
 	while (true) {
 		std::cout << "Du kannst auf die Chatraeume von 0-3 connected." << std::endl;
-		std::cout << "Tippe nun deine Wahl ein." << std::endl;
+		std::cout << "Tippe nun deine Wahl ein..." << std::endl;
 		std::getline(std::cin, userInput);
 
 		if (userInput == "0")
@@ -47,9 +47,15 @@ int main()
 	if (!client.init())
 		std::cout << "Couldnt init" << std::endl;
 
+	std::cout << "Tippe deinen Namen ein..." << std::endl;
+	std::getline(std::cin, userInput);
+	std::string userName = userInput;
+
+
 	std::string choice = chooseChatroom();
 	client.createSocket();
 	client.connectToSrv("89.14.163.155", 54000);
+
 
 	client.sendMsg(choice);
 	client.recieve();		//wartet auf antwort des srv ob das joinen auf den chatroom geklappt hat
@@ -65,7 +71,8 @@ int main()
 		std::getline(std::cin, userInput);
 		if (userInput == "exit")
 			break;
-		client.sendMsg(userInput);
+		std::string msg = (std::string)userName + ": " + userInput;
+		client.sendMsg(msg);
 	}
 	worker.detach();	//need to "destroy" explicitly
 	return 0;
