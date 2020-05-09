@@ -1,6 +1,7 @@
 #include "Client.h"
 
 #include <thread>
+#include <string>
 
 static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);	//change color of console
 static std::string userInput;
@@ -18,7 +19,7 @@ void waitingForMsg(Client client)
 	}
 }
 
-std::string chooseChatroom()
+/*std::string chooseChatroom()
 {
 	while (true) {
 		std::cout << "Du kannst auf die Chatraeume von 0-3 connected." << std::endl;
@@ -38,7 +39,7 @@ std::string chooseChatroom()
 			std::cout << "Dieser Chatraum existiert nicht." << std::endl;
 		}
 	}
-}
+}*/
 
 int main()
 {
@@ -52,15 +53,17 @@ int main()
 	std::string userName = userInput;
 
 
-	std::string choice = chooseChatroom();
+	//std::string choice = chooseChatroom();
 	client.createSocket();
 	client.connectToSrv("89.14.163.155", 54000);
 
 
-	client.sendMsg(choice);
-	client.recieve();		//wartet auf antwort des srv ob das joinen auf den chatroom geklappt hat
-	std::cout << client.getMessage() << "!" << std::endl;
-		
+	//client.sendMsg(choice);
+	client.recieve();		//gets number of chatrooms
+	int crCount = std::stoi(client.getMessage());
+	std::cout << "Du kannst mit /contocr auf die Chatraeume von 0" << "-" << crCount-1 <<  " connecten." << std::endl;
+
+
 	std::thread worker(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann
 
 	SetConsoleTextAttribute(hConsole, 12);		//change color of console
@@ -69,10 +72,24 @@ int main()
 	{
 		//std::cout << "> ";
 		std::getline(std::cin, userInput);
+		std::string cmd = userInput.substr(0, 8);
+
 		if (userInput == "exit")
 			break;
-		std::string msg = (std::string)userName + ": " + userInput;
-		client.sendMsg(msg);
+		else if (cmd == "/contocr" && userInput.size() > 9)		//noch nicht perfekt eingefügt, man kann immer noch buchstaben eintippen
+		{
+			int crCon = std::stoi(userInput.substr(9, 1));
+			if (crCon < crCount)
+				client.sendMsg(userInput);
+			else
+				std::cout << "Es gibt nur Chatrooms zwischen 0 und " << crCount - 1 << std::endl;
+		}
+		else
+		{
+			std::string msg = (std::string)userName + ": " + userInput;
+			client.sendMsg(msg);
+		}
+			
 	}
 	worker.detach();	//need to "destroy" explicitly
 	return 0;

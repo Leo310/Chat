@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <iostream>
+#include <string>
 #include <tuple>
 #include "Chatroom.h"
 
@@ -33,7 +34,9 @@ private:
 	Chatroom cr0 = Chatroom(0);
 	Chatroom cr1 = Chatroom(1);
 	Chatroom cr2 = Chatroom(2);
-	Chatroom cr3 = Chatroom(3);
+	//Chatroom cr3 = Chatroom(3);
+
+	std::vector<Chatroom*> m_Chatrooms = { &cr0, &cr1, &cr2 };
 
 	SOCKET m_Listening;
 	

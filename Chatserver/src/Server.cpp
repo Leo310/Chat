@@ -25,10 +25,30 @@ bool Server::recieve()
 		if (FD_ISSET(m_Sd, &m_Readfds))
 		{
 			char buf[4096];
-			int received = recv(m_Clients[i], buf, 4096, 0);
-			m_RcvMsg = std::make_tuple(buf, m_Clients[i]);
-			getpeername(m_Sd, (sockaddr*)&m_AddrOfClient, &m_ClientSize);	//TODO check return value
+			int received = recv(m_Sd, buf, 4096, 0);
+			m_RcvMsg = std::make_tuple(buf, m_Sd);
 
+			//checks if client wants to connect on chatroom
+			std::string cmd = std::get<0>(m_RcvMsg).substr(0, 8);
+			if (cmd == "/contocr")
+			{
+				int crCon = std::stoi(std::get<0>(m_RcvMsg).substr(9, 1));
+				//if already in a chatroom, diconnect form this one
+				for (Chatroom* cr : m_Chatrooms)
+				{
+					if (cr->inChatroom(std::get<1>(m_RcvMsg)))
+					{
+						cr->remove(m_Sd);
+						break;
+					}
+				}
+				m_Chatrooms[crCon]->add(m_Sd);
+
+				sendMsgTo(m_Sd, (std::string)"Successfully connected to Chatroom " + std::to_string(crCon));
+			}
+
+			//checks if client disconnected
+			getpeername(m_Sd, (sockaddr*)&m_AddrOfClient, &m_ClientSize);	//TODO check return value
 			char hostName[NI_MAXHOST];
 			inet_ntop(AF_INET, &m_AddrOfClient.sin_addr, hostName, NI_MAXHOST);
 
@@ -68,14 +88,14 @@ bool Server::sendMsgCr()
 	bool sended = false;
 	std::vector<SOCKET> sendTo;
 	//figuering out on which cr the client is
-	if(cr0.inChatroom(std::get<1>(m_RcvMsg)))
-		sendTo = cr0.sendMsg(std::get<1>(m_RcvMsg));
-	else if(cr1.inChatroom(std::get<1>(m_RcvMsg)))
-		sendTo = cr1.sendMsg(std::get<1>(m_RcvMsg));
-	else if (cr2.inChatroom(std::get<1>(m_RcvMsg)))
-		sendTo = cr2.sendMsg(std::get<1>(m_RcvMsg));
-	else if (cr3.inChatroom(std::get<1>(m_RcvMsg)))
-		sendTo = cr3.sendMsg(std::get<1>(m_RcvMsg));
+	for (Chatroom* cr : m_Chatrooms)
+	{
+		if (cr->inChatroom(std::get<1>(m_RcvMsg)))
+		{
+			sendTo = cr->sendMsg(std::get<1>(m_RcvMsg));
+			break;
+		}
+	}
 
 	for (int i = 0; i < sendTo.size(); i++)
 	{
@@ -175,37 +195,11 @@ void Server::waitForConnection()
 		}
 
 		m_Clients.push_back(m_Client);
-
-
-		//Chatroom auswahl
-		char buf[2];
-		int received = recv(m_Client, buf, 2, 0);	//TODO ask if error
-		std::string welcomeText;
-		if (buf == (std::string)"0")
-		{
-			cr0.add(m_Client);
-			welcomeText = "Connected successfully on Chatroom 0";
-		}
-		else if (buf == (std::string)"1")
-		{
-			cr1.add(m_Client);
-			welcomeText = "Connected successfully on Chatroom 1";
-		}
-		else if (buf == (std::string)"2")
-		{
-			cr2.add(m_Client);
-			welcomeText = "Connected successfully on Chatroom 2";
-		}
-		else if (buf == (std::string)"3")
-		{
-			cr3.add(m_Client);
-			welcomeText = "Connected successfully on Chatroom 3";
-		}
-		sendMsgTo(m_Client, welcomeText);
-
 		char hostName[NI_MAXHOST];
 		inet_ntop(AF_INET, &m_AddrOfClient.sin_addr, hostName, NI_MAXHOST);
-		std::cout << hostName << " connected on port " << ntohs(m_AddrOfClient.sin_port)<< " and on Chatroom " << buf << std::endl;
+		std::cout << hostName << " connected on port " << ntohs(m_AddrOfClient.sin_port) << std::endl;
+		//send client chatroomchoices
+		sendMsgTo(m_Client, std::to_string(m_Chatrooms.size()));
 
 	}
 
