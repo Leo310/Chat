@@ -20,7 +20,7 @@ public:
 	bool createListeningSocket();
 	void waitForConnection();
 
-	bool recieve();
+	int recieve();
 	bool sendMsgTo(SOCKET s, std::string msg);
 
 	bool sendMsgCr();
@@ -43,7 +43,7 @@ private:
 	std::vector<SOCKET> m_Clients;
 	SOCKET m_Client;
 	SOCKADDR_IN m_AddrOfClient;
-	int m_ClientSize;
+	int m_ClientSize = sizeof(m_AddrOfClient);	//need to do this or accept wont work: The returned address is truncated if the buffer provided is too small
 
 	std::string m_IpAddress;
 	int m_Port;

@@ -13,7 +13,7 @@ int main()
 		while (true)
 		{
 			srv.waitForConnection();
-			if (srv.recieve())
+			if (srv.recieve() > 0)
 			{
 				std::cout << srv.getMessage() << std::endl;
 				srv.sendMsgCr();

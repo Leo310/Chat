@@ -16,9 +16,9 @@ bool Server::init()
 	return !WSAStartup(MAKEWORD(2, 2), &data);
 }
 
-bool Server::recieve()
+int Server::recieve()		//returns -1 rcv command, returns 0 error, returns 1 rcv msg
 {
-	bool rcv = false;
+	int rcv = 0;
 	for (int i = 0; i < m_Clients.size(); i++)
 	{
 		m_Sd = m_Clients[i];
@@ -26,46 +26,50 @@ bool Server::recieve()
 		{
 			char buf[4096];
 			int received = recv(m_Sd, buf, 4096, 0);
-			m_RcvMsg = std::make_tuple(buf, m_Sd);
 
-			//checks if client wants to connect on chatroom
-			std::string cmd = std::get<0>(m_RcvMsg).substr(0, 8);
-			if (cmd == "/contocr")
-			{
-				int crCon = std::stoi(std::get<0>(m_RcvMsg).substr(9, 1));
-				//if already in a chatroom, diconnect form this one
-				for (Chatroom* cr : m_Chatrooms)
-				{
-					if (cr->inChatroom(std::get<1>(m_RcvMsg)))
-					{
-						cr->remove(m_Sd);
-						break;
-					}
-				}
-				m_Chatrooms[crCon]->add(m_Sd);
-
-				sendMsgTo(m_Sd, (std::string)"Successfully connected to Chatroom " + std::to_string(crCon));
-			}
-
-			//checks if client disconnected
 			getpeername(m_Sd, (sockaddr*)&m_AddrOfClient, &m_ClientSize);	//TODO check return value
 			char hostName[NI_MAXHOST];
 			inet_ntop(AF_INET, &m_AddrOfClient.sin_addr, hostName, NI_MAXHOST);
 
+			//checks if client disconnected or an error occurred
 			if (received == SOCKET_ERROR)
 			{
 				std::cout << hostName << ":" << ntohs(m_AddrOfClient.sin_port) << " didnt disconnect succesfully	Error code: " << WSAGetLastError() << std::endl;
 				m_Clients.erase(m_Clients.begin() + i);
 				closesocket(m_Sd);
+				rcv = 0;
 			}
 			else if (received == 0)
 			{
 				std::cout << hostName << ":" << ntohs(m_AddrOfClient.sin_port) << " Client diconnected" << std::endl;
 				m_Clients.erase(m_Clients.begin() + i);
 				closesocket(m_Sd);
+				rcv = 0;
 			}
 			else
-				rcv = true;			//könnte bei mehreren clients die gleichzeitig etwas schicken probleme auswerfen
+				rcv = 1;			//könnte bei mehreren clients die gleichzeitig etwas schicken probleme auswerfen
+
+			//checks if client wants to connect on chatroom
+			std::string cmd = buf;
+			if (cmd.substr(0, 8) == "/contocr")
+			{
+				int crCon = std::stoi(cmd.substr(9, 1));
+				//if already in a chatroom, diconnect form this one
+				for (Chatroom* cr : m_Chatrooms)
+				{
+					if (cr->inChatroom(m_Sd))
+					{
+						cr->remove(m_Sd);
+						break;
+					}
+				}
+				m_Chatrooms[crCon]->add(m_Sd);
+				std::cout << hostName << ":" << ntohs(m_AddrOfClient.sin_port) << " did successfully connect to Chatroom " << crCon << std::endl;
+				sendMsgTo(m_Sd, (std::string)"Successfully connected to Chatroom " + std::to_string(crCon));
+				rcv = -1;
+			}
+			if(rcv > 0)
+				m_RcvMsg = std::make_tuple(buf, m_Sd);	//füge message zu RcvMsg hinzu wenns kein command war
 		}
 	}
 	return rcv;
@@ -186,7 +190,6 @@ void Server::waitForConnection()
 
 	if (FD_ISSET(m_Listening, &m_Readfds))
 	{
-		m_ClientSize = sizeof(m_AddrOfClient);	//need to do this or accept wont work
 		m_Client = accept(m_Listening, (sockaddr*)&m_AddrOfClient, &m_ClientSize);
 
 		if (m_Client == INVALID_SOCKET)

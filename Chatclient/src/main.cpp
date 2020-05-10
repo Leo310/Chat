@@ -72,17 +72,22 @@ int main()
 	{
 		//std::cout << "> ";
 		std::getline(std::cin, userInput);
-		std::string cmd = userInput.substr(0, 8);
-
-		if (userInput == "exit")
-			break;
-		else if (cmd == "/contocr" && userInput.size() > 9)		//noch nicht perfekt eingefügt, man kann immer noch buchstaben eintippen
+		if (userInput.substr(0, 1) == "/")	//if command
 		{
-			int crCon = std::stoi(userInput.substr(9, 1));
-			if (crCon < crCount)
-				client.sendMsg(userInput);
+			if (userInput.substr(1, 4) == "exit")
+				break;
+			else if (userInput.substr(1, 7) == "contocr" && userInput.size() > 9)		//noch nicht perfekt eingefügt, man kann immer noch buchstaben eintippen
+			{
+				int crCon = std::stoi(userInput.substr(9, 1));
+				if (crCon < crCount)
+					client.sendMsg(userInput);
+				else
+					std::cout << "Es gibt nur Chatrooms zwischen 0 und " << crCount - 1 << std::endl;
+			}
 			else
-				std::cout << "Es gibt nur Chatrooms zwischen 0 und " << crCount - 1 << std::endl;
+			{
+				std::cout << "Es gibt diesen Command nicht. Es gibt nur /contocr (Chatraumnummer) und /exit" << std::endl;
+			}
 		}
 		else
 		{
