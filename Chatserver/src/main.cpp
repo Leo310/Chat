@@ -3,14 +3,24 @@
 
 int main()
 {
-	Server srv("192.168.1.7", 54010);
+	Server srv("192.168.1.4", 54000);
 
 	if (!srv.init())	
 		std::cout << "Couldnt Init Winsock" << std::endl;
-
-	srv.run();
+	
+	if (srv.createListeningSocket())
+	{
+		while (true)
+		{
+			srv.waitForConnection();
+			if (srv.recieve() > 0)
+			{
+				std::cout << srv.getMessage() << std::endl;
+				srv.sendMsgCr();
+			}
+		}
+	}
 
 	std::cin.get();
-
 	return 0;
 }

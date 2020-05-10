@@ -3,8 +3,10 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Server.cpp" />
+    <ClCompile Include="src\Chatroom.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Server.h" />
+    <ClInclude Include="src\Chatroom.h" />
   </ItemGroup>
 </Project>

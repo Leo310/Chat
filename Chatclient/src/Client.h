@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
@@ -14,11 +15,18 @@ public:
 	bool init();
 	void connectToSrv(const std::string& srvIp, int srvPort);
 
+	bool sendMsg(const std::string& msg);
+	bool recieve();
+
+	std::string getMessage();
+
 	void cleanup();
 
 	void createSocket();
-private:
 
+private:
 	SOCKET m_Client;
+
+	char m_RcvMsg[4096];
 
 };

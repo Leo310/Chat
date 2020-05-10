@@ -1,5 +1,0 @@
-﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(459,5): warning MSB8028: The intermediate directory (C:\Users\leona\Documents\Programming\Chat\bin\intermediates\Win32\Debug\) contains files shared from another project (Chatclient.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  Server.cpp
-  main.cpp
-  Code wird generiert...
-  Chatserver.vcxproj -> C:\Users\leona\Documents\Programming\Chat\bin\Win32\Debug\Chatserver.exe
