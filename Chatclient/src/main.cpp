@@ -1,11 +1,18 @@
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 #include "Client.h"
 
 #include <thread>
 #include <string>
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw_gl3.h"
+
 static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);	//change color of console
 static std::string userInput;
-
+static std::string userName;
+static int crCount;
 
 //other Threads task
 void waitingForMsg(Client client)
@@ -19,55 +26,8 @@ void waitingForMsg(Client client)
 	}
 }
 
-/*std::string chooseChatroom()
+void waitingForUserInput(Client client)
 {
-	while (true) {
-		std::cout << "Du kannst auf die Chatraeume von 0-3 connected." << std::endl;
-		std::cout << "Tippe nun deine Wahl ein..." << std::endl;
-		std::getline(std::cin, userInput);
-
-		if (userInput == "0")
-			return "0";
-		else if (userInput == "1")
-			return "1";
-		else if (userInput == "2")
-			return "2";
-		else if (userInput == "3")
-			return "3";
-		else
-		{
-			std::cout << "Dieser Chatraum existiert nicht." << std::endl;
-		}
-	}
-}*/
-
-int main()
-{
-	Client client;
-
-	if (!client.init())
-		std::cout << "Couldnt init" << std::endl;
-
-	std::cout << "Tippe deinen Namen ein..." << std::endl;
-	std::getline(std::cin, userInput);
-	std::string userName = userInput;
-
-
-	//std::string choice = chooseChatroom();
-	client.createSocket();
-	client.connectToSrv("89.14.163.155", 54000);
-
-
-	//client.sendMsg(choice);
-	client.recieve();		//gets number of chatrooms
-	int crCount = std::stoi(client.getMessage());
-	std::cout << "Du kannst mit /contocr auf die Chatraeume von 0" << "-" << crCount-1 <<  " connecten." << std::endl;
-
-
-	std::thread worker(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann
-
-	SetConsoleTextAttribute(hConsole, 12);		//change color of console
-
 	while (true)
 	{
 		//std::cout << "> ";
@@ -94,8 +54,91 @@ int main()
 			std::string msg = (std::string)userName + ": " + userInput;
 			client.sendMsg(msg);
 		}
-			
 	}
-	worker.detach();	//need to "destroy" explicitly
+}
+
+int main()
+{
+
+	//CLient logic
+	Client client;
+
+	if (!client.init())
+		std::cout << "Couldnt init" << std::endl;
+
+	std::cout << "Tippe deinen Namen ein..." << std::endl;
+	std::getline(std::cin, userInput);
+	userName = userInput;
+
+
+	//std::string choice = chooseChatroom();
+	client.createSocket();
+	client.connectToSrv("77.191.118.48", 54000);
+
+
+	//client.sendMsg(choice);
+	client.recieve();		//gets number of chatrooms
+	crCount = std::stoi(client.getMessage());
+	std::cout << "Du kannst mit /contocr auf die Chatraeume von 0" << "-" << crCount-1 <<  " connecten." << std::endl;
+
+
+	std::thread rcvWorker(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann
+	std::thread userInputWorker(waitingForUserInput, std::ref(client));
+
+	SetConsoleTextAttribute(hConsole, 12);		//change color of console
+
+	//Graphics
+	GLFWwindow* window;
+
+	if (!glfwInit())
+		return -1;
+
+	window = glfwCreateWindow(960, 540, "Chat", NULL, NULL);
+	if (!window)
+	{
+		glfwTerminate();
+		return -1;
+	}
+
+	glfwMakeContextCurrent(window);
+
+	if (glewInit() != GLEW_OK)
+		std::cout << "Error!" << std::endl;
+
+	// Setup ImGui binding
+	ImGui::CreateContext();
+	//Enable Gamepad Controls
+	ImGui_ImplGlfwGL3_Init(window, true);
+	// Setup style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
+
+	while (!glfwWindowShouldClose(window))
+	{
+		//Render here
+		glClear(GL_COLOR_BUFFER_BIT);
+		ImGui_ImplGlfwGL3_NewFrame();
+
+		{
+			static float f = 0.0f;
+			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f    
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		}
+
+		// 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
+
+		ImGui::Render();
+		ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+		//Swap front and back buffers
+		glfwSwapBuffers(window);
+
+		//Poll for and process events
+		glfwPollEvents();
+	}
+	ImGui_ImplGlfwGL3_Shutdown();
+	ImGui::DestroyContext();
+	glfwTerminate();
+	userInputWorker.detach();
+	rcvWorker.detach();	//need to "destroy" explicitly
 	return 0;
 }
