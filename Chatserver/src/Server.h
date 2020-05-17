@@ -18,7 +18,7 @@ public:
 	bool init();
 
 	bool createListeningSocket();
-	void waitForConnection();
+	void waitForConnections();
 
 	int recieve();
 	bool sendMsgTo(SOCKET s, std::string msg);

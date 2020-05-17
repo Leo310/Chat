@@ -158,7 +158,7 @@ bool Server::createListeningSocket()
 	return true;
 }
 
-void Server::waitForConnection()
+void Server::waitForConnections()
 {
 	//clear the socket set  
 	FD_ZERO(&m_Readfds);

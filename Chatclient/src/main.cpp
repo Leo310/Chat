@@ -19,28 +19,6 @@ void waitingForMsg(Client client)
 	}
 }
 
-/*std::string chooseChatroom()
-{
-	while (true) {
-		std::cout << "Du kannst auf die Chatraeume von 0-3 connected." << std::endl;
-		std::cout << "Tippe nun deine Wahl ein..." << std::endl;
-		std::getline(std::cin, userInput);
-
-		if (userInput == "0")
-			return "0";
-		else if (userInput == "1")
-			return "1";
-		else if (userInput == "2")
-			return "2";
-		else if (userInput == "3")
-			return "3";
-		else
-		{
-			std::cout << "Dieser Chatraum existiert nicht." << std::endl;
-		}
-	}
-}*/
-
 int main()
 {
 	Client client;
@@ -48,15 +26,51 @@ int main()
 	if (!client.init())
 		std::cout << "Couldnt init" << std::endl;
 
-	std::cout << "Tippe deinen Namen ein..." << std::endl;
-	std::getline(std::cin, userInput);
-	std::string userName = userInput;
-
-
-	//std::string choice = chooseChatroom();
 	client.createSocket();
 	client.connectToSrv("89.14.163.155", 54000);
 
+	while (true)
+	{
+		std::cout << "1 Login		2 Registieren" << std::endl;
+		std::getline(std::cin, userInput);
+
+		if (userInput == "1") //login
+		{
+			std::cout << "Tippe deinen Namen ein..." << std::endl;
+			std::getline(std::cin, userInput);
+			std::string userName = userInput;
+
+			std::cout << "Tippe dein Passwort ein..." << std::endl;
+			std::getline(std::cin, userInput);
+			std::string password = userInput;
+			
+			client.sendMsg("/login;" + userName + ";" + "password");
+			if (client.recieve())
+			{
+				if (client.getMessage() == "1")	//successfull login
+				{
+					User user;
+				}
+				else if (client.getMessage() == "0")
+				{
+
+				}
+			}
+			break;
+		}
+		else if (userInput == "2")	//register
+		{
+			std::cout << "Tippe deinen Namen ein..." << std::endl;
+			std::getline(std::cin, userInput);
+			std::string userName = userInput;
+
+			break;
+		}
+		else 
+		{
+			std::cout << "Tippe entweder die Zahl zum Login oder die Zahl 2 zum Registrieren" std::endl;
+		}
+	}
 
 	//client.sendMsg(choice);
 	client.recieve();		//gets number of chatrooms

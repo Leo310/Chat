@@ -4,9 +4,12 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Server.cpp" />
     <ClCompile Include="src\Chatroom.cpp" />
+    <ClCompile Include="db\UserData" />
+    <ClCompile Include="src\User.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Server.h" />
     <ClInclude Include="src\Chatroom.h" />
+    <ClInclude Include="src\User.h" />
   </ItemGroup>
 </Project>

@@ -12,7 +12,7 @@ int main()
 	{
 		while (true)
 		{
-			srv.waitForConnection();
+			srv.waitForConnections();
 			if (srv.recieve() > 0)
 			{
 				std::cout << srv.getMessage() << std::endl;
