@@ -360,3 +360,11 @@ MigrationBackup/
 *.db-wal
 
 *.ipch
+
+*.vcxproj
+
+*.filters
+
+*.sln
+
+*.user
