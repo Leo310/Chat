@@ -14,7 +14,8 @@
 
 
 #define SEND 0
-#define RCVD 1
+#define RCVDCMSG 1
+#define RCVDSMSG 2
 
 
 class Interface
@@ -26,10 +27,12 @@ public:
 	bool init();
 	void update();
 
+	void log(const std::string& msg);
+
 	void setChatCount(int crCount);
 	int ConnectTo();
 
-	void printRcvdMsg(std::string rcvdMsg);
+	void printRcvdMsg(const std::string& rcvdMsg);
 
 	bool logined();
 	std::string getUserName();
@@ -40,10 +43,21 @@ public:
 	bool closeProgram();
 
 private:
+	void showColorSettings();
+	bool m_ColorSettingsActivated = true;
+	float m_Color[3] = { 0.176503f, 0.089224f, 0.863850f };
+
+	void showLog();
+	bool m_LogActivated = true;
+	std::vector<std::string> m_Logs;
 
 	void showScreens();
 	bool m_ScreensActivated = false;
 
+
+	void showExit();
+	bool m_ExitActivated = true;
+	bool m_Exit = false;
 
 	void showLogin();
 	bool m_LoginActivated = true;

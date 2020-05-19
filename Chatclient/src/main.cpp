@@ -3,9 +3,12 @@
 
 #include <thread>
 
+Client client;
+Interface gui;
+
+
 static std::string rcvMsg;
 static bool rcvdMsg = false;
-static int crCount;
 
 //other Threads task
 void waitingForMsg(Client client)
@@ -19,47 +22,44 @@ void waitingForMsg(Client client)
 	}
 }
 
+
 int main()
 {
-
-	//CLient logic
-	Client client;
-
-	if (!client.init())
-		std::cout << "Couldnt init" << std::endl;
-
-	//std::string choice = chooseChatroom();
-	client.createSocket();
-	client.connectToSrv("77.191.118.48", 54000);
-
-
-	//client.sendMsg(choice);
-	client.recieve();		//gets number of chatrooms
-	crCount = std::stoi(client.getMessage());
-	std::cout << "Du kannst mit /contocr auf die Chatraeume von 0" << "-" << crCount-1 <<  " connecten." << std::endl;
-
-
-	std::thread rcvWorker(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann
-
-	Interface gui;
+	//no Console
+	FreeConsole();
 
 	if (!gui.init())
 		return -1;
 
-	gui.setChatCount(crCount);
+	if (!client.init())
+		gui.log("Couldnt init Winsock");
+
+	//std::string choice = chooseChatroom();
+	client.createSocket();
+	client.connectToSrv("77.191.144.48", 54000);
+
+	std::thread rcvWorker(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann
+
 
 	while (!gui.closeProgram())
 	{
 		if (rcvdMsg == true)
 		{
-			gui.printRcvdMsg(rcvMsg);
+			if (rcvMsg.substr(0, 9) == "Chatroom:")
+			{
+				gui.setChatCount(std::stoi(rcvMsg.substr(9, 10)));
+				gui.log("Chatroom Number: " + rcvMsg.substr(9, 10));
+			}
+			else
+			{
+				gui.printRcvdMsg(rcvMsg);
+			}
 			rcvdMsg = false;
 		}
 		if (gui.logined())
 		{
 			if (gui.sendButtonPressed())
 			{
-
 				std::string msg = (std::string)gui.getUserName() + ": " + gui.getSendMsg();
 				client.sendMsg(msg);
 			}

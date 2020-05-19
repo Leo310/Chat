@@ -21,7 +21,6 @@ bool Chatroom::add(SOCKET& client)
 	{
 		if (m_Clients[i] == client)
 		{
-			std::cout << "Client " << hostName << ":" << htons(m_AddrOfClient.sin_port) << " is already in this chatroom" << std::endl;
 			clientInChatroom = true;
 			break;
 		}
@@ -45,16 +44,11 @@ bool Chatroom::remove(SOCKET& client)
 	{
 		if (m_Clients[i] == client)
 		{
-			std::cout << "Removed Client " << hostName << ":" << htons(m_AddrOfClient.sin_port) <<  " succesfully from Chatroom " << m_ChatroomId << std::endl;
 			m_Clients.erase(m_Clients.begin() + i);
 			clientInChatroom = true;
 			break;
 		}
 		clientInChatroom = false;
-	}
-	if (!clientInChatroom)
-	{
-		std::cout << "Client " << hostName << ":" << htons(m_AddrOfClient.sin_port) << " is not in this chatroom" << std::endl;
 	}
 	return clientInChatroom;
 }
@@ -69,6 +63,11 @@ bool Chatroom::inChatroom(SOCKET& client)
 		}
 	}
 	return false;
+}
+
+std::vector<SOCKET> Chatroom::getClients()
+{
+	return m_Clients;
 }
 
 std::vector<SOCKET> Chatroom::sendMsg(SOCKET& client)

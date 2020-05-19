@@ -72,12 +72,24 @@ void Interface::update()
 	ImGui::NewFrame();
 	//static bool show = true;
 	//ImGui::ShowDemoWindow(&show);
+	ImGui::PushStyleColor(ImGuiCol_Button, { m_Color[0],m_Color[1],m_Color[2], 255 });
 
 	if (m_ScreensActivated)
 		showScreens();
 
 	if (m_ChatConnectionsActivated)
 		showChatConnections();
+
+	if (m_LogActivated)
+		showLog();
+
+	if (m_ColorSettingsActivated)
+		showColorSettings();
+
+	if (m_ExitActivated)
+	{
+		showExit();
+	}
 
 	if (m_LoginActivated)
 	{
@@ -93,7 +105,8 @@ void Interface::update()
 	{
 		showRcvdMsg();
 	}
-	
+	ImGui::PopStyleColor();
+
 	//ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 	ImGui::Render();
@@ -102,6 +115,11 @@ void Interface::update()
 	glfwSwapBuffers(m_Window);
 	//Poll for and process events
 	glfwPollEvents();
+}
+
+void Interface::log(const std::string& msg)
+{
+	m_Logs.push_back(msg);
 }
 
 void Interface::setChatCount(int crCount)
@@ -117,13 +135,29 @@ int Interface::ConnectTo()
 void Interface::showScreens()
 {
 	ImGui::Begin("All Screens", &m_ScreensActivated, 0);
-
 	if (ImGui::Button("Receiving Message"))
 		m_RcvdMsgActivated = true;
 	if(ImGui::Button("Sending Message"))
 		m_SendMsgActivated = true;
 	if(ImGui::Button("Connect to Chatrooms"))
 		m_ChatConnectionsActivated = true;
+	if (ImGui::Button("Exit"))
+		m_ExitActivated = true;
+	if (ImGui::Button("Log"))
+		m_LogActivated = true;
+	if (ImGui::Button("Color Settings"))
+		m_ColorSettingsActivated = true;
+	ImGui::End();
+}
+
+void Interface::showExit()
+{
+	ImGui::Begin("Exit", &m_ExitActivated, 0);
+	
+	if (ImGui::Button("Exit", { ImGui::GetWindowWidth() * 4/5, ImGui::GetWindowHeight() * 4/5 }))
+	{
+		m_Exit = true;
+	}
 
 	ImGui::End();
 }
@@ -152,9 +186,16 @@ void Interface::showRcvdMsg()
 	ImGui::Begin("Receiving Message", &m_RcvdMsgActivated, 0);
 	for (std::tuple<std::string, int> msg : m_RcvdSendMessages)
 	{
-		if (std::get<1>(msg) == RCVD)
+		
+		if (std::get<1>(msg) == RCVDCMSG)
 		{
 			ImGui::Text(std::get<0>(msg).c_str());
+		}
+		else if (std::get<1>(msg) == RCVDSMSG)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, { m_Color[0],m_Color[1],m_Color[2], 255 });
+			ImGui::Text(std::get<0>(msg).c_str());
+			ImGui::PopStyleColor();
 		}
 		else if (std::get<1>(msg) == SEND)
 		{
@@ -175,7 +216,6 @@ void Interface::showChatConnections()
 		std::string cr = "Chatroom " + std::to_string(i);
 		if (ImGui::Button(cr.c_str()))
 		{
-			std::cout << "sdkagjhflk" << std::endl;
 			m_ConnectTo = i;	//client wants to connect to chatroom
 			break;
 		}
@@ -193,7 +233,6 @@ void Interface::showSendMsg()
 	ImGui::Begin("Sending Message", &m_SendMsgActivated, 0);
 	ImGui::InputText("", m_SendTxt, sizeof(m_SendTxt));
 	ImGui::SameLine();
-
 	if (ImGui::Button("Send"))
 	{
 		m_Send = true;
@@ -212,10 +251,13 @@ void Interface::showSendMsg()
 	ImGui::End();
 }
 
-void Interface::printRcvdMsg(std::string rcvdMsg)
+void Interface::printRcvdMsg(const std::string& rcvdMsg)
 {
 	m_RcvdMessages.push_back(rcvdMsg);
-	m_RcvdSendMessages.push_back(std::make_tuple(rcvdMsg, RCVD));
+	if(rcvdMsg.substr(0,7) == "Server:")
+		m_RcvdSendMessages.push_back(std::make_tuple(rcvdMsg, RCVDSMSG));
+	else
+		m_RcvdSendMessages.push_back(std::make_tuple(rcvdMsg, RCVDCMSG));
 }
 
 bool Interface::sendButtonPressed()
@@ -230,7 +272,25 @@ std::string Interface::getSendMsg()
 
 bool Interface::closeProgram()
 {
-	return glfwWindowShouldClose(m_Window);
+	return glfwWindowShouldClose(m_Window) || m_Exit;
+}
+
+void Interface::showColorSettings()
+{
+	ImGui::Begin("Color Settings", &m_ColorSettingsActivated, 0);
+	ImGui::ColorPicker3("Set Color", m_Color, 0);
+	ImGui::End();
+}
+
+void Interface::showLog()
+{
+	ImGui::Begin("Log", &m_LogActivated, 0);
+	for (std::string msg : m_Logs)
+	{
+		ImGui::Text(msg.c_str());
+		ImGui::SetScrollHere(0.999f);
+	}
+	ImGui::End();
 }
 
 bool Interface::logined()

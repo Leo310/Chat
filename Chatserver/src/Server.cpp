@@ -54,18 +54,52 @@ int Server::recieve()		//returns -1 rcv command, returns 0 error, returns 1 rcv 
 			if (cmd.substr(0, 8) == "/contocr")
 			{
 				int crCon = std::stoi(cmd.substr(9, 1));
-				//if already in a chatroom, diconnect form this one
+
+				//if already in a chatroom, diconnect from this one
 				for (Chatroom* cr : m_Chatrooms)
 				{
 					if (cr->inChatroom(m_Sd))
 					{
-						cr->remove(m_Sd);
-						break;
+						//client not in same chatroom
+						if (cr != m_Chatrooms[crCon])
+						{
+							std::vector<SOCKET> sendTo = cr->sendMsg(m_Sd);
+							for (SOCKET client : sendTo)
+							{
+								sendMsgTo(client, (std::string)"Server: " + hostName + " disconnected from Chatroom");
+							}
+							if (cr->remove(m_Sd))
+							{
+								std::cout << "Removed Client " << hostName << ":" << htons	(m_AddrOfClient.sin_port) << " succesfully from Chatroom " << crCon << std::endl;
+							}
+							else
+							{
+								std::cout << "Client " << hostName << ":" << htons(m_AddrOfClient.sin_port) << " is not in this chatroom" << std::endl;
+							}
+							break;
+						}
 					}
 				}
-				m_Chatrooms[crCon]->add(m_Sd);
-				std::cout << hostName << ":" << ntohs(m_AddrOfClient.sin_port) << " did successfully connect to Chatroom " << crCon << std::endl;
-				sendMsgTo(m_Sd, (std::string)"Successfully connected to Chatroom " + std::to_string(crCon));
+				if (m_Chatrooms[crCon]->add(m_Sd))
+				{
+					//prints on srv side
+					std::cout << hostName << ":" << ntohs(m_AddrOfClient.sin_port) << " did successfully connect to Chatroom " << crCon << std::endl;
+					//sends msg to client who wants to connect
+					sendMsgTo(m_Sd, (std::string)"Server: Successfully connected to Chatroom " + std::to_string(crCon));
+					//sends msg to all other clients on the chatroom
+					std::vector<SOCKET> sendTo = m_Chatrooms[crCon]->sendMsg(m_Sd);
+					for (SOCKET client : sendTo)
+					{
+						sendMsgTo(client, (std::string)"Server: " + hostName + " connected to Chatroom");
+					}
+				}
+				else
+				{
+					//prints on srv side
+					std::cout << "Client " << hostName << ":" << htons(m_AddrOfClient.sin_port) << " is already on this chatroom" << std::endl;
+					//sends msg to client who wants to connect
+					sendMsgTo(m_Sd, (std::string)"Server: Already on this Chatroom ");
+				}
 				rcv = -1;
 			}
 			if(rcv > 0)
@@ -201,9 +235,9 @@ void Server::waitForConnection()
 		char hostName[NI_MAXHOST];
 		inet_ntop(AF_INET, &m_AddrOfClient.sin_addr, hostName, NI_MAXHOST);
 		std::cout << hostName << " connected on port " << ntohs(m_AddrOfClient.sin_port) << std::endl;
-		//send client chatroomchoices
-		sendMsgTo(m_Client, std::to_string(m_Chatrooms.size()));
 
+		//send client chatroomchoices
+		sendMsgTo(m_Client, "Chatroom:" + std::to_string(m_Chatrooms.size()));
 	}
 
 }
