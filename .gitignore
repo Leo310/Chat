@@ -368,3 +368,7 @@ MigrationBackup/
 *.sln
 
 *.user
+
+*.iss
+
+ChatClientSetup.exe
