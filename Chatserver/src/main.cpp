@@ -7,7 +7,8 @@ int main()
 
 	if (!srv.init())	
 		std::cout << "Couldnt Init Winsock" << std::endl;
-	
+
+	srv.addCr(2);
 	if (srv.createListeningSocket())
 	{
 		while (true)
@@ -16,7 +17,7 @@ int main()
 			if (srv.recieve() > 0)
 			{
 				std::cout << srv.getMessage() << std::endl;
-				srv.sendMsgCr();
+				srv.sendMsgCr();	//when rcv a msg send to all the other clients in the chatroom
 			}
 		}
 	}

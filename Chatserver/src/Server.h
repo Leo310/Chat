@@ -23,6 +23,7 @@ public:
 	int recieve();
 	bool sendMsgTo(SOCKET s, std::string msg);
 
+	void addCr(int count);
 	bool sendMsgCr();
 
 	std::string getMessage();
@@ -30,13 +31,7 @@ public:
 	void cleanUp();
 
 private:
-	//std::vector<Chatroom> m_Chatrooms;
-	Chatroom cr0 = Chatroom(0);
-	Chatroom cr1 = Chatroom(1);
-	Chatroom cr2 = Chatroom(2);
-	//Chatroom cr3 = Chatroom(3);
-
-	std::vector<Chatroom*> m_Chatrooms = { &cr0, &cr1, &cr2 };
+	std::vector<Chatroom*> m_Chatrooms;
 
 	SOCKET m_Listening;
 	

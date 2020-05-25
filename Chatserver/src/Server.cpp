@@ -121,7 +121,18 @@ bool Server::sendMsgTo(SOCKET s, std::string msg)
 	return sended;
 }
 
-bool Server::sendMsgCr()
+void Server::addCr(int count)
+{
+	for (int i = 0; i < count; i++)
+	{
+		m_Chatrooms.push_back(new Chatroom(m_Chatrooms.size()));
+		//send client chatroomchoices
+	}
+	for(SOCKET client : m_Clients)
+		sendMsgTo(client, "Chatroom:" + std::to_string(m_Chatrooms.size()));	//send new Chatroomcount to all connected clients
+}
+
+bool Server::sendMsgCr()	//sends rcv message to other clients
 {
 	bool sended = false;
 	std::vector<SOCKET> sendTo;
@@ -236,9 +247,7 @@ void Server::waitForConnection()
 		inet_ntop(AF_INET, &m_AddrOfClient.sin_addr, hostName, NI_MAXHOST);
 		std::cout << hostName << " connected on port " << ntohs(m_AddrOfClient.sin_port) << std::endl;
 
-		//send client chatroomchoices
 		sendMsgTo(m_Client, "Chatroom:" + std::to_string(m_Chatrooms.size()));
-		std::cout << "Chatroom:" + std::to_string(m_Chatrooms.size()) << std::endl;
 	}
 
 }
