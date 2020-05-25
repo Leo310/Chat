@@ -31,21 +31,37 @@ int main()
 	//no Console
 	FreeConsole();
 
+	bool connected = false;
+
 	if (!gui.init())
 		return -1;
 
 	if (!client.init())
 		gui.log("Couldnt init Winsock");
 
-	//std::string choice = chooseChatroom();
-	client.createSocket();
-	client.connectToSrv("77.183.12.182", 54000);
-
-	std::thread rcvWorker(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann
-
+	std::thread rcvWorker;
 
 	while (!gui.closeProgram())
 	{
+		if (gui.logined())
+		{
+			if (!connected)
+			{
+				client.createSocket();
+				client.connectToSrv(gui.getServerIp(), gui.getServerPort());
+				rcvWorker = std::thread(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann)
+				connected = true;
+			}
+			if (gui.sendButtonPressed())
+			{
+				std::string msg = (std::string)gui.getUserName() + ": " + gui.getSendMsg();
+				client.sendMsg(msg);
+			}
+			if (gui.ConnectTo() >= 0)
+			{
+				client.sendMsg("/contocr " + std::to_string(gui.ConnectTo()));
+			}
+		}
 		if (rcvdMsg == true)
 		{
 			if (rcvMsg.substr(0, 9) == "Chatroom:")
@@ -58,18 +74,6 @@ int main()
 				gui.printRcvdMsg(rcvMsg);
 			}
 			rcvdMsg = false;
-		}
-		if (gui.logined())
-		{
-			if (gui.sendButtonPressed())
-			{
-				std::string msg = (std::string)gui.getUserName() + ": " + gui.getSendMsg();
-				client.sendMsg(msg);
-			}
-			if (gui.ConnectTo() >= 0)
-			{
-				client.sendMsg("/contocr " + std::to_string(gui.ConnectTo()));
-			}
 		}
 
 		gui.update();

@@ -166,8 +166,10 @@ void Interface::showLogin()
 {
 	ImGui::Begin("Login", &m_LoginActivated, 0);
 	ImGui::InputText("Username", m_LoginUserName, sizeof(m_LoginUserName));
-	ImGui::SameLine();
-	if (ImGui::Button("Login"))
+	ImGui::InputText("Server IP", m_ServerIp, sizeof(m_ServerIp));
+	ImGui::InputText("Server Port", m_ServerPort, sizeof(m_ServerPort));
+	ImGuiIO& io = ImGui::GetIO();
+	if (ImGui::Button("Login") || io.KeysDownDuration[GLFW_KEY_ENTER] == 0.0f)
 	{
 		m_Logined = true;
 		m_SendMsgActivated = true;
@@ -233,8 +235,10 @@ void Interface::showSendMsg()
 	ImGui::Begin("Sending Message", &m_SendMsgActivated, 0);
 	ImGui::InputText("", m_SendTxt, sizeof(m_SendTxt));
 	ImGui::SameLine();
-	if (ImGui::Button("Send"))
+	ImGuiIO& io = ImGui::GetIO();
+	if (ImGui::Button("Send") || io.KeysDownDuration[GLFW_KEY_ENTER] == 0.0f)
 	{
+		ImGui::SetKeyboardFocusHere(0);
 		m_Send = true;
 		m_SendedMessages.push_back(m_SendTxt);
 		m_RcvdSendMessages.push_back(std::make_tuple(m_SendTxt, SEND));
@@ -301,4 +305,14 @@ bool Interface::logined()
 std::string Interface::getUserName()
 {
 	return m_LoginUserName;
+}
+
+std::string Interface::getServerIp()
+{
+	return m_ServerIp;
+}
+
+int Interface::getServerPort()
+{
+	return std::stoi(m_ServerPort);
 }

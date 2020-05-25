@@ -8,7 +8,7 @@ int main()
 	if (!srv.init())	
 		std::cout << "Couldnt Init Winsock" << std::endl;
 
-	srv.addCr(2);
+	srv.addCr(5);
 	if (srv.createListeningSocket())
 	{
 		while (true)

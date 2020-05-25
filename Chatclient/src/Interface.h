@@ -38,6 +38,8 @@ public:
 
 	bool logined();
 	std::string getUserName();
+	std::string getServerIp();
+	int getServerPort();
 
 	bool sendButtonPressed();
 	std::string getSendMsg();
@@ -64,6 +66,8 @@ private:
 	void showLogin();
 	bool m_LoginActivated = true;
 	char m_LoginUserName[4096] = "";
+	char m_ServerIp[4096] = "";
+	char m_ServerPort[4096] = "";
 	bool m_Logined = false;
 
 
