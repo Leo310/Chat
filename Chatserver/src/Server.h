@@ -52,7 +52,7 @@ private:
 
 	//set of socket descriptors  
 	fd_set m_Readfds;
-	int m_Maxsd;
+	SOCKET m_Maxsd;
 	SOCKET m_Sd;
 	int m_Rdy;
 };

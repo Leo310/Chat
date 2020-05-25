@@ -7,6 +7,8 @@
 #include "examples/imgui_impl_opengl3.h"
 #include "examples/imgui_impl_glfw.h"
 
+#include <Windows.h>	//for SecureZeroMemory
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -81,7 +83,7 @@ private:
 
 	void showChatConnections();
 	bool m_ChatConnectionsActivated = false;
-	int m_CrCount;
+	int m_CrCount = 0;
 	int m_ConnectTo = -1;
 
 

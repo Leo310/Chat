@@ -3,6 +3,7 @@
 extern Interface gui;
 
 Client::Client()
+	: m_Client(0), m_RcvMsg("")
 {
 }
 

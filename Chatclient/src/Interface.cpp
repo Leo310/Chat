@@ -238,7 +238,7 @@ void Interface::showSendMsg()
 		m_Send = true;
 		m_SendedMessages.push_back(m_SendTxt);
 		m_RcvdSendMessages.push_back(std::make_tuple(m_SendTxt, SEND));
-		std::memset(m_SendTxt, 0, sizeof(m_SendTxt));
+		SecureZeroMemory(m_SendTxt, sizeof(m_SendTxt));
 	}
 	else {
 		m_Send = false;

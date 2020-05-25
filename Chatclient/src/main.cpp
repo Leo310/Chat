@@ -10,6 +10,8 @@ Interface gui;
 static std::string rcvMsg;
 static bool rcvdMsg = false;
 
+static std::string stopOptimizeThisWhileLoop;
+
 //other Threads task
 void waitingForMsg(Client client)
 {
@@ -18,7 +20,8 @@ void waitingForMsg(Client client)
 		client.recieve();
 		rcvMsg = client.getMessage();
 		rcvdMsg = true;
-		while (rcvdMsg == true);
+		while (rcvdMsg == true)
+			stopOptimizeThisWhileLoop = "Hope it wont get optimized";	//need this because the while loop would get optimized in rls mode
 	}
 }
 
@@ -36,7 +39,7 @@ int main()
 
 	//std::string choice = chooseChatroom();
 	client.createSocket();
-	client.connectToSrv("77.191.144.48", 54000);
+	client.connectToSrv("77.183.12.182", 54000);
 
 	std::thread rcvWorker(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann
 

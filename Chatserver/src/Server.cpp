@@ -1,7 +1,7 @@
 #include "Server.h"
 
 Server::Server(std::string ip, int port)
-	: m_IpAddress(ip), m_Port(port)
+	: m_IpAddress(ip), m_Port(port), m_AddrOfClient(), m_Client(0), m_Listening(0), m_Maxsd(0), m_Rdy(0), m_Readfds(), m_Sd(0)
 {
 }
 
@@ -19,7 +19,7 @@ bool Server::init()
 int Server::recieve()		//returns -1 rcv command, returns 0 error, returns 1 rcv msg
 {
 	int rcv = 0;
-	for (int i = 0; i < m_Clients.size(); i++)
+	for (unsigned int i = 0; i < m_Clients.size(); i++)
 	{
 		m_Sd = m_Clients[i];
 		if (FD_ISSET(m_Sd, &m_Readfds))
@@ -135,7 +135,7 @@ bool Server::sendMsgCr()
 		}
 	}
 
-	for (int i = 0; i < sendTo.size(); i++)
+	for (unsigned int i = 0; i < sendTo.size(); i++)
 	{
 		sendMsgTo(sendTo[i],std::get<0>(m_RcvMsg));
 	}
@@ -145,7 +145,7 @@ bool Server::sendMsgCr()
 void Server::cleanUp()
 {
 	closesocket(m_Listening);
-	for (int i = 0; i < m_Clients.size(); i++)
+	for (unsigned int i = 0; i < m_Clients.size(); i++)
 	{
 		closesocket(m_Clients[i]);
 	}
@@ -164,7 +164,7 @@ bool Server::createListeningSocket()
 	{
 		std::cout << "Created Socket" << std::endl;
 		SOCKADDR_IN addr;
-		ZeroMemory(&addr, sizeof(addr));
+		SecureZeroMemory(&addr, sizeof(addr));
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(m_Port);
 		inet_pton(AF_INET, m_IpAddress.c_str(), &addr.sin_addr);
@@ -203,7 +203,7 @@ void Server::waitForConnection()
 	m_Maxsd = m_Listening;
 
 	//add clients to set
-	for (int i = 0; i < m_Clients.size(); i++)
+	for (unsigned int i = 0; i < m_Clients.size(); i++)
 	{
 		//socket descriptor 
 		m_Sd = m_Clients[i];
@@ -238,6 +238,7 @@ void Server::waitForConnection()
 
 		//send client chatroomchoices
 		sendMsgTo(m_Client, "Chatroom:" + std::to_string(m_Chatrooms.size()));
+		std::cout << "Chatroom:" + std::to_string(m_Chatrooms.size()) << std::endl;
 	}
 
 }
