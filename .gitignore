@@ -6,3 +6,4 @@ bin/
 *.iss
 ChatClientSetup.exe
 *.user
+Chatclient/Chatclient.aps
