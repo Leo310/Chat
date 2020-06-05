@@ -1,6 +1,6 @@
 #include "Client.h"
 
-extern Interface gui;
+extern Interface gui;	//only for logging
 
 Client::Client()
 	: m_Client(0), m_RcvMsg("")
@@ -18,13 +18,26 @@ bool Client::init()
 	return !WSAStartup(MAKEWORD(2, 2), &data);
 }
 
-void Client::connectToSrv(const std::string& srvIp, int srvPort)
+int Client::connectToSrv(const std::string& srvIp, int srvPort)
 {
 	//filling server addr
 	SOCKADDR_IN serverAddr;
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(srvPort);
-	inet_pton(AF_INET, srvIp.c_str(), &serverAddr.sin_addr);
+	if (inet_pton(AF_INET, srvIp.c_str(), &serverAddr.sin_addr) <= 0)
+	{
+		closesocket(m_Client);
+		gui.log("Destroyed Socket");
+		return INVALID_IP;
+	}
+
+	if (srvPort != -1)
+		serverAddr.sin_port = htons(srvPort);
+	else
+	{
+		closesocket(m_Client);
+		gui.log("Destroyed Socket");
+		return INVALID_PORT;
+	}
 
 	gui.log("Connecting to srv...");
 	int connectSrv = connect(m_Client, (sockaddr*)&serverAddr, sizeof(serverAddr));
@@ -32,10 +45,14 @@ void Client::connectToSrv(const std::string& srvIp, int srvPort)
 	if (connectSrv == SOCKET_ERROR)
 	{
 		gui.log("Cant connect to Srv	Error code: " + WSAGetLastError());
+		closesocket(m_Client);
+		gui.log("Destroyed Socket");
+		return COULDNT_CONNECT;
 	}
 	else
 	{
 		gui.log("Connected successfully to Server " + srvIp + ":" + std::to_string(srvPort));
+		return true;
 	}
 }
 
@@ -71,6 +88,7 @@ void Client::cleanup()
 {
 	closesocket(m_Client);
 	WSACleanup();
+	gui.log("CleanedUp");
 }
 
 void Client::createSocket()

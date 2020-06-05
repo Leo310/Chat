@@ -42,8 +42,6 @@ bool Interface::init()
 	ImGui::StyleColorsDark();
 	//ImGui::StyleColorsClassic();
 
-	ImGuiStyle& style = ImGui::GetStyle();
-	style.ScaleAllSizes(5.0f);
 
 	// Enable Keyboard Controls
 	ImGuiIO& io = ImGui::GetIO();
@@ -117,6 +115,20 @@ void Interface::update()
 	glfwPollEvents();
 }
 
+void Interface::reset(const std::string& reason)
+{
+	log(reason);
+	m_LogActivated = true;
+	m_ColorSettingsActivated = true;
+	m_ScreensActivated = false;
+	m_ExitActivated = true;
+	m_LoginActivated = true;
+	m_Logined = false;
+	m_SendMsgActivated = false;
+	m_RcvdMsgActivated = false;
+	m_ChatConnectionsActivated = false;
+}
+
 void Interface::log(const std::string& msg)
 {
 	m_Logs.push_back(msg);
@@ -134,19 +146,19 @@ int Interface::ConnectTo()
 
 void Interface::showScreens()
 {
-	ImGui::Begin("All Screens", &m_ScreensActivated, 0);
-	if (ImGui::Button("Receiving Message"))
-		m_RcvdMsgActivated = true;
-	if(ImGui::Button("Sending Message"))
-		m_SendMsgActivated = true;
-	if(ImGui::Button("Connect to Chatrooms"))
-		m_ChatConnectionsActivated = true;
-	if (ImGui::Button("Exit"))
-		m_ExitActivated = true;
-	if (ImGui::Button("Log"))
-		m_LogActivated = true;
-	if (ImGui::Button("Color Settings"))
-		m_ColorSettingsActivated = true;
+	ImGui::Begin("Show Screens", &m_ScreensActivated, 0);
+	if (ImGui::Button("Receiving Message", { ImGui::GetWindowWidth() - 20 , ImGui::GetWindowHeight()/6-12 }))
+		m_RcvdMsgActivated = !m_RcvdMsgActivated;
+	if(ImGui::Button("Sending Message", { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() / 6 - 12 }))
+		m_SendMsgActivated = !m_SendMsgActivated;
+	if(ImGui::Button("Connect to Chatrooms", { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() / 6 - 12 }))
+		m_ChatConnectionsActivated = !m_ChatConnectionsActivated;
+	if (ImGui::Button("Exit", { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() / 6 - 12 }))
+		m_ExitActivated = !m_ExitActivated;
+	if (ImGui::Button("Log", { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() / 6 - 12 }))
+		m_LogActivated = !m_LogActivated;
+	if (ImGui::Button("Color Settings", { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() / 6 - 12 }))
+		m_ColorSettingsActivated = !m_ColorSettingsActivated;
 	ImGui::End();
 }
 
@@ -154,7 +166,7 @@ void Interface::showExit()
 {
 	ImGui::Begin("Exit", &m_ExitActivated, 0);
 	
-	if (ImGui::Button("Exit", { ImGui::GetWindowWidth() * 4/5, ImGui::GetWindowHeight() * 4/5 }))
+	if (ImGui::Button("Exit", { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() - 50 }))
 	{
 		m_Exit = true;
 	}
@@ -168,8 +180,9 @@ void Interface::showLogin()
 	ImGui::InputText("Username", m_LoginUserName, sizeof(m_LoginUserName));
 	ImGui::InputText("Server IP", m_ServerIp, sizeof(m_ServerIp));
 	ImGui::InputText("Server Port", m_ServerPort, sizeof(m_ServerPort));
+	ImGui::Dummy({ 0.0f, 20.0f });
 	ImGuiIO& io = ImGui::GetIO();
-	if (ImGui::Button("Login") || io.KeysDownDuration[GLFW_KEY_ENTER] == 0.0f)
+	if (ImGui::Button("Login", { ImGui::GetWindowWidth() - 20, 40 }) || io.KeysDownDuration[GLFW_KEY_ENTER] == 0.0f)
 	{
 		m_Logined = true;
 		m_SendMsgActivated = true;
@@ -188,21 +201,32 @@ void Interface::showRcvdMsg()
 	ImGui::Begin("Receiving Message", &m_RcvdMsgActivated, 0);
 	for (std::tuple<std::string, int> msg : m_RcvdSendMessages)
 	{
-		
 		if (std::get<1>(msg) == RCVDCMSG)
 		{
-			ImGui::Text(std::get<0>(msg).c_str());
+			for (int i = 0; i < std::get<0>(msg).size(); i += 45)
+			{
+				ImGui::Text(std::get<0>(msg).substr(i, 45).c_str());
+			}
+			ImGui::Dummy({ 0.0f, 10.0f });
 		}
 		else if (std::get<1>(msg) == RCVDSMSG)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, { m_Color[0],m_Color[1],m_Color[2], 255 });
-			ImGui::Text(std::get<0>(msg).c_str());
+			for (int i = 0; i < std::get<0>(msg).size(); i += 45)
+			{
+				ImGui::Text(std::get<0>(msg).substr(i, 45).c_str());
+			}
 			ImGui::PopStyleColor();
+			ImGui::Dummy({0.0f, 10.0f});
 		}
 		else if (std::get<1>(msg) == SEND)
 		{
-			ImGui::SetCursorPosX(ImGui::GetWindowWidth() * 4/5);
-			ImGui::Text(std::get<0>(msg).c_str());
+			for (int i = 0; i < std::get<0>(msg).size(); i += 30)
+			{
+				ImGui::SetCursorPosX(ImGui::GetWindowWidth() * 3 / 7);
+				ImGui::Text(std::get<0>(msg).substr(i, 30).c_str());
+			}
+			ImGui::Dummy({ 0.0f, 10.0f });
 		}
 		ImGui::SetScrollHere(0.999f);
 	}
@@ -216,7 +240,7 @@ void Interface::showChatConnections()
 	for (int i = 0; i < m_CrCount; i++)
 	{
 		std::string cr = "Chatroom " + std::to_string(i);
-		if (ImGui::Button(cr.c_str()))
+		if (ImGui::Button(cr.c_str(), { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() / m_CrCount - 20 }))
 		{
 			m_ConnectTo = i;	//client wants to connect to chatroom
 			break;
@@ -283,6 +307,17 @@ void Interface::showColorSettings()
 {
 	ImGui::Begin("Color Settings", &m_ColorSettingsActivated, 0);
 	ImGui::ColorPicker3("Set Color", m_Color, 0);
+	/*ImGuiStyle& style = ImGui::GetStyle();
+	if (ImGui::Button("+"))
+	{
+		m_Scaling += 0.2f;
+		style.ScaleAllSizes(m_Scaling);
+	}
+	if (ImGui::Button("-"))
+	{
+		m_Scaling -= 0.2f;
+		style.ScaleAllSizes(1.0f/m_Scaling);
+	}*/
 	ImGui::End();
 }
 
@@ -314,5 +349,12 @@ std::string Interface::getServerIp()
 
 int Interface::getServerPort()
 {
-	return std::stoi(m_ServerPort);
+	try
+	{
+		return std::stoi(m_ServerPort);
+	}
+	catch (std::invalid_argument error)
+	{
+		return -1;
+	}
 }

@@ -29,6 +29,8 @@ public:
 	bool init();
 	void update();
 
+	void reset(const std::string& reason);
+
 	void log(const std::string& msg);
 
 	void setChatCount(int crCount);
@@ -84,6 +86,7 @@ private:
 
 	std::vector<std::tuple<std::string, int>> m_RcvdSendMessages;	//1. msg, ob msg rcvd oder gesendet
 
+	float m_Scaling = 1.0f;
 
 	void showChatConnections();
 	bool m_ChatConnectionsActivated = false;

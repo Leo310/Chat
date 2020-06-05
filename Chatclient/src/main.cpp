@@ -48,18 +48,40 @@ int main()
 			if (!connected)
 			{
 				client.createSocket();
-				client.connectToSrv(gui.getServerIp(), gui.getServerPort());
-				rcvWorker = std::thread(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann)
-				connected = true;
+				int connect = client.connectToSrv(gui.getServerIp(), gui.getServerPort());
+				switch (connect)
+				{
+				case INVALID_IP:
+					gui.reset("Invalid IP");
+					gui.update();
+					connected = false;
+					break;
+				case INVALID_PORT:
+					gui.reset("Invalid Port");
+					gui.update();
+					connected = false;
+					break;
+				case COULDNT_CONNECT:
+					gui.reset("Couldnt connect to srv");
+					gui.update();
+					connected = false;
+					break;
+				case true:
+					rcvWorker = std::thread(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann)
+					connected = true;
+				}
 			}
-			if (gui.sendButtonPressed())
+			else
 			{
-				std::string msg = (std::string)gui.getUserName() + ": " + gui.getSendMsg();
-				client.sendMsg(msg);
-			}
-			if (gui.ConnectTo() >= 0)
-			{
-				client.sendMsg("/contocr " + std::to_string(gui.ConnectTo()));
+				if (gui.sendButtonPressed())
+				{
+					std::string msg = (std::string)gui.getUserName() + ": " + gui.getSendMsg();
+					client.sendMsg(msg);
+				}
+				if (gui.ConnectTo() >= 0)
+				{
+					client.sendMsg("/contocr " + std::to_string(gui.ConnectTo()));
+				}
 			}
 		}
 		if (rcvdMsg == true)
