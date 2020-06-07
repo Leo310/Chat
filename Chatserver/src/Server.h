@@ -24,6 +24,8 @@ public:
 	bool sendMsgTo(SOCKET s, std::string msg);
 
 	void addCr(int count);
+	void removeCr(int count);
+	int getCrCount();
 	bool sendMsgCr();
 
 	std::string getMessage();

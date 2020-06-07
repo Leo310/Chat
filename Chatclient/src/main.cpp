@@ -6,14 +6,13 @@
 Client client;
 Interface gui;
 
-
 static std::string rcvMsg;
 static bool rcvdMsg = false;
 
 static std::string stopOptimizeThisWhileLoop;
 
 //other Threads task
-void waitingForMsg(Client client)
+void waitingForMsg(Client& client)
 {
 	while (true)
 	{

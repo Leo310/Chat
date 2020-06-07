@@ -126,10 +126,41 @@ void Server::addCr(int count)
 	for (int i = 0; i < count; i++)
 	{
 		m_Chatrooms.push_back(new Chatroom(m_Chatrooms.size()));
-		//send client chatroomchoices
 	}
-	for(SOCKET client : m_Clients)
+	for (SOCKET client : m_Clients)
+	{
 		sendMsgTo(client, "Chatroom:" + std::to_string(m_Chatrooms.size()));	//send new Chatroomcount to all connected clients
+	}
+}
+
+void Server::removeCr(int count)
+{
+	if (m_Chatrooms.size() >= count)
+	{
+		int oldSize = m_Chatrooms.size();
+		for (int i = 1; i <= count; i++)
+		{
+			auto clientsOnCr = m_Chatrooms[oldSize - i]->getClients();
+			for(SOCKET client : clientsOnCr)
+				sendMsgTo(client, "Server: Chatroom " + std::to_string(oldSize - i) + " got closed");	//send disconnect
+			std::cout << "Chatroom " + std::to_string(oldSize - i) + " got closed" << std::endl;
+			m_Chatrooms.erase(m_Chatrooms.begin() + oldSize - i);
+		}
+		for (SOCKET client : m_Clients)
+		{
+			sendMsgTo(client, "Chatroom:" + std::to_string(m_Chatrooms.size()));	//send new Chatroomcount to all connected clients
+		
+		}
+	}
+	else
+	{
+		std::cout << "There are only " + std::to_string(m_Chatrooms.size()) + " Chatrooms left" << std::endl;
+	}
+}
+
+int Server::getCrCount()
+{
+	return m_Chatrooms.size();
 }
 
 bool Server::sendMsgCr()	//sends rcv message to other clients
