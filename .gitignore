@@ -3,7 +3,6 @@ bin/
 *.sln
 *.vcxproj
 *.filters
-*.iss
-ChatClientSetup.exe
+Chat Setup.exe
 *.user
 Chatclient/Chatclient.aps
