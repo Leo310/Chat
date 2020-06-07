@@ -14,10 +14,12 @@ public:
 	Chatroom(int chatRoomId);
 	~Chatroom();
 
+
 	bool add(SOCKET& client);			//& ist egal weil pointer = int = SOCKET aber trotzdem schöner
 	bool remove(SOCKET& client);
 	bool inChatroom(SOCKET& client);
 
+	std::vector<SOCKET> getClients();
 	std::vector<SOCKET> sendMsg(SOCKET& client);
 
 private:

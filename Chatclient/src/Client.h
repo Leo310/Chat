@@ -6,6 +6,13 @@
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 
+#include "Interface.h"	//only for logging
+
+#define INVALID_IP -1
+#define INVALID_PORT 0
+#define COULDNT_CONNECT 2
+
+
 class Client
 {
 public:
@@ -13,7 +20,7 @@ public:
 	~Client();
 
 	bool init();
-	void connectToSrv(const std::string& srvIp, int srvPort);
+	int connectToSrv(const std::string& srvIp, int srvPort);
 
 	bool sendMsg(const std::string& msg);
 	bool recieve();

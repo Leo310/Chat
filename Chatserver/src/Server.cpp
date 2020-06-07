@@ -1,7 +1,7 @@
 #include "Server.h"
 
 Server::Server(std::string ip, int port)
-	: m_IpAddress(ip), m_Port(port)
+	: m_IpAddress(ip), m_Port(port), m_AddrOfClient(), m_Client(0), m_Listening(0), m_Maxsd(0), m_Rdy(0), m_Readfds(), m_Sd(0)
 {
 }
 
@@ -19,7 +19,7 @@ bool Server::init()
 int Server::recieve()		//returns -1 rcv command, returns 0 error, returns 1 rcv msg
 {
 	int rcv = 0;
-	for (int i = 0; i < m_Clients.size(); i++)
+	for (unsigned int i = 0; i < m_Clients.size(); i++)
 	{
 		m_Sd = m_Clients[i];
 		if (FD_ISSET(m_Sd, &m_Readfds))
@@ -54,18 +54,52 @@ int Server::recieve()		//returns -1 rcv command, returns 0 error, returns 1 rcv 
 			if (cmd.substr(0, 8) == "/contocr")
 			{
 				int crCon = std::stoi(cmd.substr(9, 1));
-				//if already in a chatroom, diconnect form this one
+
+				//if already in a chatroom, diconnect from this one
 				for (Chatroom* cr : m_Chatrooms)
 				{
 					if (cr->inChatroom(m_Sd))
 					{
-						cr->remove(m_Sd);
-						break;
+						//client not in same chatroom
+						if (cr != m_Chatrooms[crCon])
+						{
+							std::vector<SOCKET> sendTo = cr->sendMsg(m_Sd);
+							for (SOCKET client : sendTo)
+							{
+								sendMsgTo(client, (std::string)"Server: " + hostName + " disconnected from Chatroom");
+							}
+							if (cr->remove(m_Sd))
+							{
+								std::cout << "Removed Client " << hostName << ":" << htons	(m_AddrOfClient.sin_port) << " succesfully from Chatroom " << crCon << std::endl;
+							}
+							else
+							{
+								std::cout << "Client " << hostName << ":" << htons(m_AddrOfClient.sin_port) << " is not in this chatroom" << std::endl;
+							}
+							break;
+						}
 					}
 				}
-				m_Chatrooms[crCon]->add(m_Sd);
-				std::cout << hostName << ":" << ntohs(m_AddrOfClient.sin_port) << " did successfully connect to Chatroom " << crCon << std::endl;
-				sendMsgTo(m_Sd, (std::string)"Successfully connected to Chatroom " + std::to_string(crCon));
+				if (m_Chatrooms[crCon]->add(m_Sd))
+				{
+					//prints on srv side
+					std::cout << hostName << ":" << ntohs(m_AddrOfClient.sin_port) << " did successfully connect to Chatroom " << crCon << std::endl;
+					//sends msg to client who wants to connect
+					sendMsgTo(m_Sd, (std::string)"Server: Successfully connected to Chatroom " + std::to_string(crCon));
+					//sends msg to all other clients on the chatroom
+					std::vector<SOCKET> sendTo = m_Chatrooms[crCon]->sendMsg(m_Sd);
+					for (SOCKET client : sendTo)
+					{
+						sendMsgTo(client, (std::string)"Server: " + hostName + " connected to Chatroom");
+					}
+				}
+				else
+				{
+					//prints on srv side
+					std::cout << "Client " << hostName << ":" << htons(m_AddrOfClient.sin_port) << " is already on this chatroom" << std::endl;
+					//sends msg to client who wants to connect
+					sendMsgTo(m_Sd, (std::string)"Server: Already on this Chatroom ");
+				}
 				rcv = -1;
 			}
 			if(rcv > 0)
@@ -87,7 +121,49 @@ bool Server::sendMsgTo(SOCKET s, std::string msg)
 	return sended;
 }
 
-bool Server::sendMsgCr()
+void Server::addCr(int count)
+{
+	for (int i = 0; i < count; i++)
+	{
+		m_Chatrooms.push_back(new Chatroom(m_Chatrooms.size()));
+	}
+	for (SOCKET client : m_Clients)
+	{
+		sendMsgTo(client, "Chatroom:" + std::to_string(m_Chatrooms.size()));	//send new Chatroomcount to all connected clients
+	}
+}
+
+void Server::removeCr(int count)
+{
+	if (m_Chatrooms.size() >= count)
+	{
+		int oldSize = m_Chatrooms.size();
+		for (int i = 1; i <= count; i++)
+		{
+			auto clientsOnCr = m_Chatrooms[oldSize - i]->getClients();
+			for(SOCKET client : clientsOnCr)
+				sendMsgTo(client, "Server: Chatroom " + std::to_string(oldSize - i) + " got closed");	//send disconnect
+			std::cout << "Chatroom " + std::to_string(oldSize - i) + " got closed" << std::endl;
+			m_Chatrooms.erase(m_Chatrooms.begin() + oldSize - i);
+		}
+		for (SOCKET client : m_Clients)
+		{
+			sendMsgTo(client, "Chatroom:" + std::to_string(m_Chatrooms.size()));	//send new Chatroomcount to all connected clients
+		
+		}
+	}
+	else
+	{
+		std::cout << "There are only " + std::to_string(m_Chatrooms.size()) + " Chatrooms left" << std::endl;
+	}
+}
+
+int Server::getCrCount()
+{
+	return m_Chatrooms.size();
+}
+
+bool Server::sendMsgCr()	//sends rcv message to other clients
 {
 	bool sended = false;
 	std::vector<SOCKET> sendTo;
@@ -101,7 +177,7 @@ bool Server::sendMsgCr()
 		}
 	}
 
-	for (int i = 0; i < sendTo.size(); i++)
+	for (unsigned int i = 0; i < sendTo.size(); i++)
 	{
 		sendMsgTo(sendTo[i],std::get<0>(m_RcvMsg));
 	}
@@ -111,7 +187,7 @@ bool Server::sendMsgCr()
 void Server::cleanUp()
 {
 	closesocket(m_Listening);
-	for (int i = 0; i < m_Clients.size(); i++)
+	for (unsigned int i = 0; i < m_Clients.size(); i++)
 	{
 		closesocket(m_Clients[i]);
 	}
@@ -130,7 +206,7 @@ bool Server::createListeningSocket()
 	{
 		std::cout << "Created Socket" << std::endl;
 		SOCKADDR_IN addr;
-		ZeroMemory(&addr, sizeof(addr));
+		SecureZeroMemory(&addr, sizeof(addr));
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(m_Port);
 		inet_pton(AF_INET, m_IpAddress.c_str(), &addr.sin_addr);
@@ -169,7 +245,7 @@ void Server::waitForConnection()
 	m_Maxsd = m_Listening;
 
 	//add clients to set
-	for (int i = 0; i < m_Clients.size(); i++)
+	for (unsigned int i = 0; i < m_Clients.size(); i++)
 	{
 		//socket descriptor 
 		m_Sd = m_Clients[i];
@@ -201,9 +277,8 @@ void Server::waitForConnection()
 		char hostName[NI_MAXHOST];
 		inet_ntop(AF_INET, &m_AddrOfClient.sin_addr, hostName, NI_MAXHOST);
 		std::cout << hostName << " connected on port " << ntohs(m_AddrOfClient.sin_port) << std::endl;
-		//send client chatroomchoices
-		sendMsgTo(m_Client, std::to_string(m_Chatrooms.size()));
 
+		sendMsgTo(m_Client, "Chatroom:" + std::to_string(m_Chatrooms.size()));
 	}
 
 }

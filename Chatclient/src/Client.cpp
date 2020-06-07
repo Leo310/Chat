@@ -1,6 +1,9 @@
 #include "Client.h"
 
+extern Interface gui;	//only for logging
+
 Client::Client()
+	: m_Client(0), m_RcvMsg("")
 {
 }
 
@@ -15,24 +18,41 @@ bool Client::init()
 	return !WSAStartup(MAKEWORD(2, 2), &data);
 }
 
-void Client::connectToSrv(const std::string& srvIp, int srvPort)
+int Client::connectToSrv(const std::string& srvIp, int srvPort)
 {
 	//filling server addr
 	SOCKADDR_IN serverAddr;
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(srvPort);
-	inet_pton(AF_INET, srvIp.c_str(), &serverAddr.sin_addr);
+	if (inet_pton(AF_INET, srvIp.c_str(), &serverAddr.sin_addr) <= 0)
+	{
+		closesocket(m_Client);
+		gui.log("Destroyed Socket");
+		return INVALID_IP;
+	}
 
-	std::cout << "Connecting to srv..." << std::endl;
+	if (srvPort != -1)
+		serverAddr.sin_port = htons(srvPort);
+	else
+	{
+		closesocket(m_Client);
+		gui.log("Destroyed Socket");
+		return INVALID_PORT;
+	}
+
+	gui.log("Connecting to srv...");
 	int connectSrv = connect(m_Client, (sockaddr*)&serverAddr, sizeof(serverAddr));
 
 	if (connectSrv == SOCKET_ERROR)
 	{
-		std::cout << "Cant connect to Srv	Error code: " << WSAGetLastError() << std::endl;
+		gui.log("Cant connect to Srv	Error code: " + WSAGetLastError());
+		closesocket(m_Client);
+		gui.log("Destroyed Socket");
+		return COULDNT_CONNECT;
 	}
 	else
 	{
-		std::cout << "Connected successfully to Server " << srvIp << ":" << srvPort << std::endl;
+		gui.log("Connected successfully to Server " + srvIp + ":" + std::to_string(srvPort));
+		return true;
 	}
 }
 
@@ -41,7 +61,7 @@ bool Client::sendMsg(const std::string& msg)
 	int sended = send(m_Client, msg.c_str(), msg.size() + 1, 0);
 	if (sended == SOCKET_ERROR)
 	{
-		std::cout << "Couldnt send msg	Error code: " << WSAGetLastError << std::endl;
+		gui.log("Couldnt send msg	Error code: " + WSAGetLastError());
 		return false;
 	}
 	return true;
@@ -51,9 +71,9 @@ bool Client::recieve()
 {
 	int received = recv(m_Client, m_RcvMsg, 4096, 0);
 	if (received == SOCKET_ERROR)
-		std::cout << "Couldnt receive msg	Error code: " << WSAGetLastError << std::endl;
+		gui.log("Couldnt receive msg	Error code: " + WSAGetLastError());
 	else if (received == 0)
-		std::cout << "Server diconnected" << std::endl;
+		gui.log("Server diconnected");
 	else
 		return true;
 	return false;
@@ -68,15 +88,16 @@ void Client::cleanup()
 {
 	closesocket(m_Client);
 	WSACleanup();
+	gui.log("CleanedUp");
 }
 
 void Client::createSocket()
 {
 	m_Client = socket(AF_INET, SOCK_STREAM, 0);
 	if (m_Client == INVALID_SOCKET)
-		std::cout << "Couldn't create Socket	Error code: " << WSAGetLastError() << std::endl;
+		gui.log("Couldn't create Socket	Error code: " + WSAGetLastError());
 	else 
 	{
-		std::cout << "Created Socket" << std::endl;
+		gui.log("Created Socket");
 	}
 }

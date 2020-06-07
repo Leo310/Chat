@@ -1,101 +1,106 @@
 #include "Client.h"
+#include "Interface.h"
 
 #include <thread>
-#include <string>
 
-static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);	//change color of console
-static std::string userInput;
+Client client;
+Interface gui;
 
+static std::string rcvMsg;
+static bool rcvdMsg = false;
+
+static std::string stopOptimizeThisWhileLoop;
 
 //other Threads task
-void waitingForMsg(Client client)
+void waitingForMsg(Client& client)
 {
 	while (true)
 	{
 		client.recieve();
-		SetConsoleTextAttribute(hConsole, 10);		//change color of console
-		std::cout << client.getMessage() << std::endl;
-		SetConsoleTextAttribute(hConsole, 12);		//change color of console
+		rcvMsg = client.getMessage();
+		rcvdMsg = true;
+		while (rcvdMsg == true)
+			stopOptimizeThisWhileLoop = "Hope it wont get optimized";	//need this because the while loop would get optimized in rls mode
 	}
 }
 
-/*std::string chooseChatroom()
-{
-	while (true) {
-		std::cout << "Du kannst auf die Chatraeume von 0-3 connected." << std::endl;
-		std::cout << "Tippe nun deine Wahl ein..." << std::endl;
-		std::getline(std::cin, userInput);
-
-		if (userInput == "0")
-			return "0";
-		else if (userInput == "1")
-			return "1";
-		else if (userInput == "2")
-			return "2";
-		else if (userInput == "3")
-			return "3";
-		else
-		{
-			std::cout << "Dieser Chatraum existiert nicht." << std::endl;
-		}
-	}
-}*/
 
 int main()
 {
-	Client client;
+	//no Console
+	FreeConsole();
+
+	bool connected = false;
+
+	if (!gui.init())
+		return -1;
 
 	if (!client.init())
-		std::cout << "Couldnt init" << std::endl;
+		gui.log("Couldnt init Winsock");
 
-	std::cout << "Tippe deinen Namen ein..." << std::endl;
-	std::getline(std::cin, userInput);
-	std::string userName = userInput;
+	std::thread rcvWorker;
 
-
-	//std::string choice = chooseChatroom();
-	client.createSocket();
-	client.connectToSrv("89.14.163.155", 54000);
-
-
-	//client.sendMsg(choice);
-	client.recieve();		//gets number of chatrooms
-	int crCount = std::stoi(client.getMessage());
-	std::cout << "Du kannst mit /contocr auf die Chatraeume von 0" << "-" << crCount-1 <<  " connecten." << std::endl;
-
-
-	std::thread worker(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann
-
-	SetConsoleTextAttribute(hConsole, 12);		//change color of console
-
-	while (true)
+	while (!gui.closeProgram())
 	{
-		//std::cout << "> ";
-		std::getline(std::cin, userInput);
-		if (userInput.substr(0, 1) == "/")	//if command
+		if (gui.logined())
 		{
-			if (userInput.substr(1, 4) == "exit")
-				break;
-			else if (userInput.substr(1, 7) == "contocr" && userInput.size() > 9)		//noch nicht perfekt eingefügt, man kann immer noch buchstaben eintippen
+			if (!connected)
 			{
-				int crCon = std::stoi(userInput.substr(9, 1));
-				if (crCon < crCount)
-					client.sendMsg(userInput);
-				else
-					std::cout << "Es gibt nur Chatrooms zwischen 0 und " << crCount - 1 << std::endl;
+				client.createSocket();
+				int connect = client.connectToSrv(gui.getServerIp(), gui.getServerPort());
+				switch (connect)
+				{
+				case INVALID_IP:
+					gui.reset("Invalid IP");
+					gui.update();
+					connected = false;
+					break;
+				case INVALID_PORT:
+					gui.reset("Invalid Port");
+					gui.update();
+					connected = false;
+					break;
+				case COULDNT_CONNECT:
+					gui.reset("Couldnt connect to srv");
+					gui.update();
+					connected = false;
+					break;
+				case true:
+					rcvWorker = std::thread(waitingForMsg, std::ref(client));	//arbeit auf threads aufteilen damit der client den userinput und die nachrichten des srv gleichzeitig empfangen kann)
+					connected = true;
+				}
 			}
 			else
 			{
-				std::cout << "Es gibt diesen Command nicht. Es gibt nur /contocr (Chatraumnummer) und /exit" << std::endl;
+				if (gui.sendButtonPressed())
+				{
+					std::string msg = (std::string)gui.getUserName() + ": " + gui.getSendMsg();
+					client.sendMsg(msg);
+				}
+				if (gui.ConnectTo() >= 0)
+				{
+					client.sendMsg("/contocr " + std::to_string(gui.ConnectTo()));
+				}
 			}
 		}
-		else
+		if (rcvdMsg == true)
 		{
-			std::string msg = (std::string)userName + ": " + userInput;
-			client.sendMsg(msg);
+			if (rcvMsg.substr(0, 9) == "Chatroom:")
+			{
+				gui.setChatCount(std::stoi(rcvMsg.substr(9, 10)));
+				gui.log("Chatroom Number: " + rcvMsg.substr(9, 10));
+			}
+			else
+			{
+				gui.printRcvdMsg(rcvMsg);
+			}
+			rcvdMsg = false;
 		}
-			
+
+		gui.update();
 	}
-	worker.detach();	//need to "destroy" explicitly
+
+	rcvWorker.detach();	//need to "destroy" explicitly
+	gui.~Interface();
 	return 0;
 }
