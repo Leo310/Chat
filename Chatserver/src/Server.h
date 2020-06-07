@@ -5,7 +5,9 @@
 
 #include <vector>
 #include <iostream>
-
+#include <string>
+#include <tuple>
+#include "Chatroom.h"
 
 class Server
 {
@@ -14,19 +16,40 @@ public:
 	~Server();
 
 	bool init();
-	void run();
+
+	bool createListeningSocket();
+	void waitForConnection();
+
+	int recieve();
+	bool sendMsgTo(SOCKET s, std::string msg);
+
+	void addCr(int count);
+	void removeCr(int count);
+	int getCrCount();
+	bool sendMsgCr();
+
+	std::string getMessage();
+
 	void cleanUp();
 
 private:
-	void createSocket();
-	void waitForConnection();
+	std::vector<Chatroom*> m_Chatrooms;
 
 	SOCKET m_Listening;
-
-	SOCKET m_Clients;
-	sockaddr_in m_AddrOfClients;
-	int m_ClientSize;
+	
+	std::vector<SOCKET> m_Clients;
+	SOCKET m_Client;
+	SOCKADDR_IN m_AddrOfClient;
+	int m_ClientSize = sizeof(m_AddrOfClient);	//need to do this or accept wont work: The returned address is truncated if the buffer provided is too small
 
 	std::string m_IpAddress;
 	int m_Port;
+
+	std::tuple<std::string, SOCKET> m_RcvMsg;
+
+	//set of socket descriptors  
+	fd_set m_Readfds;
+	SOCKET m_Maxsd;
+	SOCKET m_Sd;
+	int m_Rdy;
 };

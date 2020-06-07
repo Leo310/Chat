@@ -1,0 +1,3 @@
+[submodule "chatclient/src/vendor/imgui"]
+	path = chatclient/src/vendor/imgui
+	url = https://github.com/Leo310/imgui.git

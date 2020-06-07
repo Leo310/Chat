@@ -1,0 +1,8 @@
+.vs/
+bin/
+*.sln
+*.vcxproj
+*.filters
+Chat Setup.exe
+*.user
+Chatclient/Chatclient.aps
