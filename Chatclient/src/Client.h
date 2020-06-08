@@ -1,12 +1,12 @@
 #pragma once
 
-#include <iostream>
-#include <string>
+#include <iostream>					//um dinge in der Konsole auszugeben
+#include <string>					//um die String Klasse der C++ Stanartlibrary zu benutzen
 
-#include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
+#include <WS2tcpip.h>				//Headerfile welches die Funktionsprotypen/Deklarationen enthält welche in der Library enthaten sind
+#pragma comment(lib, "ws2_32.lib")	//um auf die Windows Socket Methoden zugreifen zu können brauchen wir die Library
 
-#include "Interface.h"	//only for logging
+#include "Interface.h"	//nur um auf die log Methode zugreifen zu können
 
 #define INVALID_IP -1
 #define INVALID_PORT 0

@@ -1,17 +1,17 @@
 #pragma once
 
-#include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
+#include <WS2tcpip.h>				//Headerfile welches die Funktionsprotypen/Deklarationen enthält welche in der Library enthaten sind
+#pragma comment(lib, "ws2_32.lib")	//um auf die Windows Socket Methoden zugreifen zu können brauchen wir die Library
 
 #include <vector>
-#include <iostream>
+#include <iostream>					//um dinge in der Konsole auszugeben
 
 //#define MAX_CLIENTS	16
 
-class Chatroom
+class Chatroom		//ein virtueller chatroom
 {
 public:
-	Chatroom(int chatRoomId);
+	Chatroom(int chatRoomId);	//konstruktor jeder chatroom hat eine eindeutig identifizierbare ID die vom server zugeordnet wird
 	~Chatroom();
 
 
@@ -25,7 +25,5 @@ public:
 private:
 	int m_ChatroomId;
 
-	std::vector<SOCKET> m_Clients;
-	SOCKADDR_IN m_AddrOfClient;
-	int m_ClientSize = sizeof(m_AddrOfClient);	//need to do this or getpeername wont work: The returned address is truncated if the buffer provided is too small
+	std::vector<SOCKET> m_Clients;	//speichert alle CLients die auf den Chatraum verbunden sind
 };

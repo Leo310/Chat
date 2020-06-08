@@ -1,18 +1,18 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <GL/glew.h>	//GLEW ist eine Library die nur dafür, da ist alle Deklarationen für die Funktionen welche auf der Grafikkarte vorhanden sind bereitzustellen
+#include <GLFW/glfw3.h>	//GLFW kümmert sich um den UserInput und darum ein Fenster zu erstellen, indem die ganzen Vertexbuffer gerendert werden
 
-#include "imgui.h"
-#include "examples/imgui_impl_opengl3.h"
-#include "examples/imgui_impl_glfw.h"
+#include "imgui.h"		//wir benutzten die ImGui library, ist für das einfache erstellen von Fenstern zuständig
+#include "examples/imgui_impl_opengl3.h"	//enthält ImGUi Methoden für OpenGL
+#include "examples/imgui_impl_glfw.h"		//enthält ImGUi Methoden für GLFW
 
-#include <Windows.h>	//for SecureZeroMemory
+#include <Windows.h>	//für SecureZeroMemory, um textbuffer zu überschreiben welche sonst im Interface gerendert werden
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <tuple>
+#include <iostream>		//um dinge in der Konsole ausgeben zu können
+#include <string>		//Stringklasse der Standartlibrary
+#include <vector>		//vector = Arraylist in Java
+#include <tuple>		//um 2 Werte welche zueinander gehören in zum Beispiel einem array speichern zu können
 
 
 #define SEND 0
@@ -49,22 +49,29 @@ public:
 	bool closeProgram();
 
 private:
-	void showColorSettings();
-	bool m_ColorSettingsActivated = true;
-	float m_Color[3] = { 0.176503f, 0.089224f, 0.863850f };
+	//das Fenster welches uns GLFW bereitstellt
+	GLFWwindow* m_Window;
 
+	//erstellt Fenster, welches die Farbeinstellungen zeigt
+	void showColorSettings();
+	bool m_ColorSettingsActivated = true;	//diese Variable ist bei allen Fenstern vorhanden um den den Status zu speichern ob das Fenster geöffnet oder geschlossen ist
+	float m_Color[3] = { 0.176503f, 0.089224f, 0.863850f };	//Farben die am Anfang ausgewählt sein können
+
+	//erstellt Fenster, welches den Log anzeigt, hier werden die Texte angezeigt, welche durch die log() Methode im Buffer m_Logs gespeichert werden
 	void showLog();
 	bool m_LogActivated = true;
 	std::vector<std::string> m_Logs;
 
+	//erstellt Fenster, welches alle anderen Fenster anzeigt um sie zu schließen oder erneut zu öffnen
 	void showScreens();
 	bool m_ScreensActivated = false;
 
-
+	//erstellt Fenster, welches ein Exit Button rendert um das Programm zu schließen
 	void showExit();
 	bool m_ExitActivated = true;
 	bool m_Exit = false;
 
+	//erstellt Fenster, welches den Login rendert und auf userInput wartet
 	void showLogin();
 	bool m_LoginActivated = true;
 	char m_LoginUserName[4096] = "";
@@ -72,30 +79,26 @@ private:
 	char m_ServerPort[4096] = "";
 	bool m_Logined = false;
 
-
+	//erstellt Fenster, welches für das Senden von Nachrichten zuständig ist
 	void showSendMsg();
 	bool m_SendMsgActivated = false;
 	char m_SendTxt[4096] = "";
 	bool m_Send = false;
-	std::vector<std::string> m_SendedMessages;
+	std::vector<std::string> m_SendedMessages;	//speichert gesendete Nachrichten ab
 
-
-	void showRcvdMsg();
+	//erstellt Fenster, welches die Empfangenen Nachrichten anzeigt
+	void showRcvdMsg();	
 	bool m_RcvdMsgActivated = false;
-	std::vector<std::string> m_RcvdMessages;
+	std::vector<std::string> m_RcvdMessages; //speichert empfangene Nachrichten
 
 	std::vector<std::tuple<std::string, int>> m_RcvdSendMessages;	//1. msg, ob msg rcvd oder gesendet
 
-	float m_Scaling = 1.0f;
+	float m_Scaling = 1.0f;	//Größe der Fenster
 
-	void showChatConnections();
+	//erstellt Fenster, welches alle Chatrooms anzeigt auf denen man sich verbinden kann
+	void showChatConnections();	
 	bool m_ChatConnectionsActivated = false;
-	int m_CrCount = 0;
-	int m_ConnectToCr = -1;
+	int m_CrCount = 0;	//Anzahl der vorhandenen Chatrooms
+	int m_ConnectToCr = -1;	//auf welchen chatroom sich der Benutzer verbinden möchte
 
-
-	GLFWwindow* m_Window;
-
-	float m_Time = 0.0f;
-	ImVec2 displaySize;
 };
