@@ -34,7 +34,7 @@ public:
 	void log(const std::string& msg);
 
 	void setChatCount(int crCount);
-	int ConnectTo();
+	int ConnectToCr();
 
 	void printRcvdMsg(const std::string& rcvdMsg);
 
@@ -91,7 +91,7 @@ private:
 	void showChatConnections();
 	bool m_ChatConnectionsActivated = false;
 	int m_CrCount = 0;
-	int m_ConnectTo = -1;
+	int m_ConnectToCr = -1;
 
 
 	GLFWwindow* m_Window;

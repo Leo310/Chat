@@ -139,9 +139,9 @@ void Interface::setChatCount(int crCount)
 	m_CrCount = crCount;
 }
 
-int Interface::ConnectTo()
+int Interface::ConnectToCr()
 {
-	return m_ConnectTo;
+	return m_ConnectToCr;
 }
 
 void Interface::showScreens()
@@ -242,12 +242,12 @@ void Interface::showChatConnections()
 		std::string cr = "Chatroom " + std::to_string(i);
 		if (ImGui::Button(cr.c_str(), { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() / m_CrCount - 20 }))
 		{
-			m_ConnectTo = i;	//client wants to connect to chatroom
+			m_ConnectToCr = i;	//client wants to connect to chatroom
 			break;
 		}
 		else
 		{
-			m_ConnectTo = -1;	// client wants to connect to nothing
+			m_ConnectToCr = -1;	// client wants to connect to nothing
 		}
 	}
 
